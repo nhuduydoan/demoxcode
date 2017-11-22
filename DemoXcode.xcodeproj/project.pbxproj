@@ -7,21 +7,55 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5C16706A1FC5176100A769BC /* DXDemoGCD.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1670691FC5176100A769BC /* DXDemoGCD.m */; };
+		5C1E90891FC2E56600ADC5D6 /* DXHomeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C1E90871FC2E56600ADC5D6 /* DXHomeViewController.xib */; };
+		5C1E908A1FC2E56600ADC5D6 /* DXHomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E90881FC2E56600ADC5D6 /* DXHomeViewController.m */; };
+		5C1E908E1FC2E5FC00ADC5D6 /* DXContactViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E908C1FC2E5FC00ADC5D6 /* DXContactViewController.m */; };
+		5C1E908F1FC2E5FC00ADC5D6 /* DXContactViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C1E908D1FC2E5FC00ADC5D6 /* DXContactViewController.xib */; };
+		5C1E90941FC2E97400ADC5D6 /* DXContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E90921FC2E97400ADC5D6 /* DXContactTableViewCell.m */; };
+		5C1E90951FC2E97400ADC5D6 /* DXContactTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C1E90931FC2E97400ADC5D6 /* DXContactTableViewCell.xib */; };
+		5C576A9D1FC3B17600FFFB09 /* DXContactModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576A9C1FC3B17600FFFB09 /* DXContactModel.m */; };
+		5C576AA31FC3DFDD00FFFB09 /* DXContactsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576AA11FC3DFDD00FFFB09 /* DXContactsManager.m */; };
+		5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576AAC1FC3E40D00FFFB09 /* DXContactsSearchBar.m */; };
+		5C576AB21FC4087E00FFFB09 /* DXContactsDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576AB01FC4087E00FFFB09 /* DXContactsDetailViewController.m */; };
+		5C576AB31FC4087E00FFFB09 /* DXContactsDetailViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5C576AB11FC4087E00FFFB09 /* DXContactsDetailViewController.xib */; };
+		5C576AB81FC410C800FFFB09 /* item_search.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C576AB51FC410C800FFFB09 /* item_search.png */; };
+		5C576AB91FC410C800FFFB09 /* item_search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C576AB61FC410C800FFFB09 /* item_search@2x.png */; };
+		5C576ABA1FC410C800FFFB09 /* item_search@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C576AB71FC410C800FFFB09 /* item_search@3x.png */; };
 		5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C957E951FC2C5DB00B2E6F1 /* AppDelegate.m */; };
-		5C957E991FC2C5DB00B2E6F1 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C957E981FC2C5DB00B2E6F1 /* ViewController.m */; };
-		5C957E9C1FC2C5DB00B2E6F1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5C957E9A1FC2C5DB00B2E6F1 /* Main.storyboard */; };
 		5C957E9E1FC2C5DB00B2E6F1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */; };
 		5C957EA11FC2C5DB00B2E6F1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5C957E9F1FC2C5DB00B2E6F1 /* LaunchScreen.storyboard */; };
 		5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C957EA31FC2C5DB00B2E6F1 /* main.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5C1670681FC5176100A769BC /* DXDemoGCD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDemoGCD.h; sourceTree = "<group>"; };
+		5C1670691FC5176100A769BC /* DXDemoGCD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXDemoGCD.m; sourceTree = "<group>"; };
+		5C1E90861FC2E56600ADC5D6 /* DXHomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXHomeViewController.h; sourceTree = "<group>"; };
+		5C1E90871FC2E56600ADC5D6 /* DXHomeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = DXHomeViewController.xib; sourceTree = "<group>"; };
+		5C1E90881FC2E56600ADC5D6 /* DXHomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXHomeViewController.m; sourceTree = "<group>"; };
+		5C1E908B1FC2E5FC00ADC5D6 /* DXContactViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactViewController.h; sourceTree = "<group>"; };
+		5C1E908C1FC2E5FC00ADC5D6 /* DXContactViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactViewController.m; sourceTree = "<group>"; };
+		5C1E908D1FC2E5FC00ADC5D6 /* DXContactViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DXContactViewController.xib; sourceTree = "<group>"; };
+		5C1E90911FC2E97400ADC5D6 /* DXContactTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactTableViewCell.h; sourceTree = "<group>"; };
+		5C1E90921FC2E97400ADC5D6 /* DXContactTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactTableViewCell.m; sourceTree = "<group>"; };
+		5C1E90931FC2E97400ADC5D6 /* DXContactTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DXContactTableViewCell.xib; sourceTree = "<group>"; };
+		5C1E90991FC2F04500ADC5D6 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		5C576A9B1FC3B17600FFFB09 /* DXContactModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactModel.h; sourceTree = "<group>"; };
+		5C576A9C1FC3B17600FFFB09 /* DXContactModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactModel.m; sourceTree = "<group>"; };
+		5C576AA01FC3DFDD00FFFB09 /* DXContactsManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXContactsManager.h; sourceTree = "<group>"; };
+		5C576AA11FC3DFDD00FFFB09 /* DXContactsManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXContactsManager.m; sourceTree = "<group>"; };
+		5C576AAB1FC3E40D00FFFB09 /* DXContactsSearchBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXContactsSearchBar.h; sourceTree = "<group>"; };
+		5C576AAC1FC3E40D00FFFB09 /* DXContactsSearchBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXContactsSearchBar.m; sourceTree = "<group>"; };
+		5C576AAF1FC4087E00FFFB09 /* DXContactsDetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactsDetailViewController.h; sourceTree = "<group>"; };
+		5C576AB01FC4087E00FFFB09 /* DXContactsDetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactsDetailViewController.m; sourceTree = "<group>"; };
+		5C576AB11FC4087E00FFFB09 /* DXContactsDetailViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DXContactsDetailViewController.xib; sourceTree = "<group>"; };
+		5C576AB51FC410C800FFFB09 /* item_search.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = item_search.png; sourceTree = "<group>"; };
+		5C576AB61FC410C800FFFB09 /* item_search@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "item_search@2x.png"; sourceTree = "<group>"; };
+		5C576AB71FC410C800FFFB09 /* item_search@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "item_search@3x.png"; sourceTree = "<group>"; };
 		5C957E911FC2C5DB00B2E6F1 /* DemoXcode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoXcode.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C957E941FC2C5DB00B2E6F1 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		5C957E951FC2C5DB00B2E6F1 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		5C957E971FC2C5DB00B2E6F1 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		5C957E981FC2C5DB00B2E6F1 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		5C957E9B1FC2C5DB00B2E6F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5C957EA01FC2C5DB00B2E6F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5C957EA21FC2C5DB00B2E6F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -39,6 +73,105 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5C1E90791FC2E4E600ADC5D6 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				5C1E90841FC2E55800ADC5D6 /* Contact */,
+				5C1E90851FC2E55800ADC5D6 /* Home */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		5C1E907B1FC2E4E600ADC5D6 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				5C576A9B1FC3B17600FFFB09 /* DXContactModel.h */,
+				5C576A9C1FC3B17600FFFB09 /* DXContactModel.m */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5C1E90841FC2E55800ADC5D6 /* Contact */ = {
+			isa = PBXGroup;
+			children = (
+				5C1E908B1FC2E5FC00ADC5D6 /* DXContactViewController.h */,
+				5C1E908C1FC2E5FC00ADC5D6 /* DXContactViewController.m */,
+				5C1E908D1FC2E5FC00ADC5D6 /* DXContactViewController.xib */,
+				5C576AAE1FC4086B00FFFB09 /* Controllers */,
+				5C576AAA1FC3E40D00FFFB09 /* ContactSearchbar */,
+				5C1E90901FC2E96000ADC5D6 /* View */,
+			);
+			path = Contact;
+			sourceTree = "<group>";
+		};
+		5C1E90851FC2E55800ADC5D6 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				5C1E90861FC2E56600ADC5D6 /* DXHomeViewController.h */,
+				5C1E90881FC2E56600ADC5D6 /* DXHomeViewController.m */,
+				5C1E90871FC2E56600ADC5D6 /* DXHomeViewController.xib */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		5C1E90901FC2E96000ADC5D6 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5C1E90911FC2E97400ADC5D6 /* DXContactTableViewCell.h */,
+				5C1E90921FC2E97400ADC5D6 /* DXContactTableViewCell.m */,
+				5C1E90931FC2E97400ADC5D6 /* DXContactTableViewCell.xib */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5C576A9E1FC3DFDD00FFFB09 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				5C576A9F1FC3DFDD00FFFB09 /* ContactsManager */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		5C576A9F1FC3DFDD00FFFB09 /* ContactsManager */ = {
+			isa = PBXGroup;
+			children = (
+				5C576AA01FC3DFDD00FFFB09 /* DXContactsManager.h */,
+				5C576AA11FC3DFDD00FFFB09 /* DXContactsManager.m */,
+				5C1670681FC5176100A769BC /* DXDemoGCD.h */,
+				5C1670691FC5176100A769BC /* DXDemoGCD.m */,
+			);
+			path = ContactsManager;
+			sourceTree = "<group>";
+		};
+		5C576AAA1FC3E40D00FFFB09 /* ContactSearchbar */ = {
+			isa = PBXGroup;
+			children = (
+				5C576AAB1FC3E40D00FFFB09 /* DXContactsSearchBar.h */,
+				5C576AAC1FC3E40D00FFFB09 /* DXContactsSearchBar.m */,
+			);
+			path = ContactSearchbar;
+			sourceTree = "<group>";
+		};
+		5C576AAE1FC4086B00FFFB09 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				5C576AAF1FC4087E00FFFB09 /* DXContactsDetailViewController.h */,
+				5C576AB01FC4087E00FFFB09 /* DXContactsDetailViewController.m */,
+				5C576AB11FC4087E00FFFB09 /* DXContactsDetailViewController.xib */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		5C576AB41FC410C000FFFB09 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5C576AB51FC410C800FFFB09 /* item_search.png */,
+				5C576AB61FC410C800FFFB09 /* item_search@2x.png */,
+				5C576AB71FC410C800FFFB09 /* item_search@3x.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		5C957E881FC2C5DB00B2E6F1 = {
 			isa = PBXGroup;
 			children = (
@@ -58,14 +191,16 @@
 		5C957E931FC2C5DB00B2E6F1 /* DemoXcode */ = {
 			isa = PBXGroup;
 			children = (
+				5C576A9E1FC3DFDD00FFFB09 /* Common */,
+				5C1E907B1FC2E4E600ADC5D6 /* Model */,
+				5C1E90791FC2E4E600ADC5D6 /* Screens */,
 				5C957E941FC2C5DB00B2E6F1 /* AppDelegate.h */,
 				5C957E951FC2C5DB00B2E6F1 /* AppDelegate.m */,
-				5C957E971FC2C5DB00B2E6F1 /* ViewController.h */,
-				5C957E981FC2C5DB00B2E6F1 /* ViewController.m */,
-				5C957E9A1FC2C5DB00B2E6F1 /* Main.storyboard */,
+				5C576AB41FC410C000FFFB09 /* Resources */,
 				5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */,
 				5C957E9F1FC2C5DB00B2E6F1 /* LaunchScreen.storyboard */,
 				5C957EA21FC2C5DB00B2E6F1 /* Info.plist */,
+				5C1E90991FC2F04500ADC5D6 /* PrefixHeader.pch */,
 				5C957EA31FC2C5DB00B2E6F1 /* main.m */,
 			);
 			path = DemoXcode;
@@ -97,6 +232,7 @@
 		5C957E891FC2C5DB00B2E6F1 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				CLASSPREFIX = DX;
 				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = "Nhữ Duy Đoàn";
 				TargetAttributes = {
@@ -131,7 +267,13 @@
 			files = (
 				5C957EA11FC2C5DB00B2E6F1 /* LaunchScreen.storyboard in Resources */,
 				5C957E9E1FC2C5DB00B2E6F1 /* Assets.xcassets in Resources */,
-				5C957E9C1FC2C5DB00B2E6F1 /* Main.storyboard in Resources */,
+				5C576AB31FC4087E00FFFB09 /* DXContactsDetailViewController.xib in Resources */,
+				5C576AB91FC410C800FFFB09 /* item_search@2x.png in Resources */,
+				5C1E90891FC2E56600ADC5D6 /* DXHomeViewController.xib in Resources */,
+				5C576ABA1FC410C800FFFB09 /* item_search@3x.png in Resources */,
+				5C576AB81FC410C800FFFB09 /* item_search.png in Resources */,
+				5C1E908F1FC2E5FC00ADC5D6 /* DXContactViewController.xib in Resources */,
+				5C1E90951FC2E97400ADC5D6 /* DXContactTableViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,23 +284,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C957E991FC2C5DB00B2E6F1 /* ViewController.m in Sources */,
+				5C576AA31FC3DFDD00FFFB09 /* DXContactsManager.m in Sources */,
+				5C16706A1FC5176100A769BC /* DXDemoGCD.m in Sources */,
 				5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */,
 				5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */,
+				5C576A9D1FC3B17600FFFB09 /* DXContactModel.m in Sources */,
+				5C1E908A1FC2E56600ADC5D6 /* DXHomeViewController.m in Sources */,
+				5C1E90941FC2E97400ADC5D6 /* DXContactTableViewCell.m in Sources */,
+				5C576AB21FC4087E00FFFB09 /* DXContactsDetailViewController.m in Sources */,
+				5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */,
+				5C1E908E1FC2E5FC00ADC5D6 /* DXContactViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		5C957E9A1FC2C5DB00B2E6F1 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				5C957E9B1FC2C5DB00B2E6F1 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		5C957E9F1FC2C5DB00B2E6F1 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -280,6 +421,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = QZQXR3HEM8;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = DemoXcode/PrefixHeader.pch;
 				INFOPLIST_FILE = DemoXcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -295,6 +438,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = QZQXR3HEM8;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = DemoXcode/PrefixHeader.pch;
 				INFOPLIST_FILE = DemoXcode/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
