@@ -8,22 +8,7 @@
 
 #import "DXContactTableViewCell.h"
 #import "DXContactModel.h"
-
-@interface DXContactAvatarLabel : UILabel
-
-@end
-
-@implementation DXContactAvatarLabel
-
-- (void)setBackgroundColor:(UIColor *)backgroundColor {
-    // Not do any thing
-}
-
-- (void)setConstantBackgroundColor:(UIColor *)color {
-    [super setBackgroundColor:color];
-}
-
-@end
+#import "DXContactAvatarLabel.h"
 
 @interface DXContactTableViewCell ()
 
@@ -61,6 +46,7 @@
     UIView *selectedBackgroundView = [UIView new];
     selectedBackgroundView.backgroundColor = [UIColor colorWithWhite:0.93 alpha:1];
     self.selectedBackgroundView = selectedBackgroundView;
+    self.backgroundColor = [UIColor whiteColor];
 }
 
 #pragma mark - Private

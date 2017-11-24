@@ -13,6 +13,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="DXHomeViewController">
             <connections>
                 <outlet property="getContactsButton" destination="6aW-FZ-7b6" id="HQx-fz-kdH"/>
+                <outlet property="pickContactsButton" destination="ka2-nz-9wJ" id="3t7-nh-KpI"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -29,6 +30,16 @@
                     <state key="normal" title="Get Contacts"/>
                     <connections>
                         <action selector="touchUpInsideGetContactsButton:" destination="-1" eventType="touchUpInside" id="zOM-cb-YPB"/>
+                    </connections>
+                </button>
+                <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ka2-nz-9wJ">
+                    <rect key="frame" x="112" y="401" width="150" height="50"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                    <color key="backgroundColor" red="1" green="0.69556445369999997" blue="0.43469628799999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
+                    <state key="normal" title="Pick Contacts"/>
+                    <connections>
+                        <action selector="touchUpInsidePickContactsButton:" destination="-1" eventType="touchUpInside" id="4BT-68-eK0"/>
                     </connections>
                 </button>
             </subviews>

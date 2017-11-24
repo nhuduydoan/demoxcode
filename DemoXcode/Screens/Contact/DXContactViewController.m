@@ -170,6 +170,13 @@
     }];
 }
 
+- (NSArray *)sortContactsArrays:(NSArray *)contactsArray {
+    
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    NSArray *sortedArray = [contactsArray sortedArrayUsingDescriptors:@[sortDescriptor]];
+    return sortedArray;
+}
+
 - (void)searchWithKeyword:(NSString *)keyword {
     
     if (keyword.length == 0 || self.originalData.count == 0) {
@@ -179,7 +186,7 @@
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"fullName CONTAINS[c] %@", keyword.lowercaseString];
         NSPredicate *compoundPredicate = [NSCompoundPredicate orPredicateWithSubpredicates:@[predicate]];
         NSArray *resArr = [self.originalData filteredArrayUsingPredicate:compoundPredicate];
-        self.displayData = resArr;
+        self.displayData = [self sortContactsArrays:resArr];
     }
     
     [self.tableView reloadData];

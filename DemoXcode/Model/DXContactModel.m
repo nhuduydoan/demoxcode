@@ -34,4 +34,31 @@
     return self;
 }
 
+//- (id)copy {
+//    
+//    DXContactModel *newObj = [[[self class] alloc] init];
+//    newObj.fullName = self.fullName.copy;
+//    newObj.birthDay = self.birthDay.copy;
+//    newObj.phones = self.phones.copy;
+//    newObj.emails = self.emails.copy;
+//    newObj.addressArray = self.addressArray.copy;
+//    newObj.avatar = self.avatar.copy;
+//    return newObj;
+//}
+//
+//- (id)copyWithZone:(NSZone *)zone
+//{
+//    id copy = [[[self class] alloc] init];
+//    if (copy) {
+//        // Copy NSObject subclasses
+//        [copy setFullName:[self.fullName copyWithZone:zone]];
+//        [copy setBirthDay:[self.birthDay copyWithZone:zone]];
+//        [copy setPhones:[self.phones copyWithZone:zone]];
+//        [copy setEmails:[self.emails copyWithZone:zone]];
+//        [copy setAddressArray:[self.addressArray copyWithZone:zone]];
+//        [copy setAvatar:self.avatar.copy];
+//    }
+//    return copy;
+//}
+
 @end
