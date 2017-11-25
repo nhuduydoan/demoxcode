@@ -12,20 +12,22 @@
 
 @interface DXContactTableViewCell ()
 
-@property (weak, nonatomic) IBOutlet UIView *avatarLayerView;
-@property (weak, nonatomic) IBOutlet DXContactAvatarLabel *textAvatarLabel;
-@property (weak, nonatomic) IBOutlet UIImageView *avatarImgView;
-@property (weak, nonatomic) IBOutlet UILabel *titleLabel;
-@property (weak, nonatomic) IBOutlet UILabel *subLabel;
+@property (strong, nonatomic) UIView *avatarLayerView;
+@property (strong, nonatomic) DXContactAvatarLabel *textAvatarLabel;
+@property (strong, nonatomic) UIImageView *avatarImgView;
+@property (strong, nonatomic) UILabel *titleLabel;
+@property (strong, nonatomic) UILabel *subLabel;
 
 @end
 
 @implementation DXContactTableViewCell
 
-- (void)awakeFromNib {
-    [super awakeFromNib];
-    // Initialization code
-    [self setUpView];
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        [self setUpView];
+    }
+    return self;
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -38,16 +40,41 @@
 
 - (void)setUpView {
     
+    [self setupAvatarView];
+    [self setupChildLabels];
+}
+
+
+- (void)setupAvatarView {
+    
+    self.avatarLayerView = [[UIView alloc] initWithFrame:CGRectMake(9, 9, 46, 46)];
+    self.avatarLayerView.clipsToBounds = YES;
+    self.avatarLayerView.layer.cornerRadius = self.avatarLayerView.bounds.size.width / 2;
+    self.avatarImgView = [[UIImageView alloc] initWithFrame:self.avatarLayerView.bounds];
+    [self.avatarLayerView addSubview:self.avatarImgView];
+    self.textAvatarLabel = [[DXContactAvatarLabel alloc] initWithFrame:self.avatarLayerView.bounds];
+    self.textAvatarLabel.textAlignment = NSTextAlignmentCenter;
+    self.textAvatarLabel.font = [UIFont systemFontOfSize:18 weight:1];
     self.textAvatarLabel.textColor = [UIColor whiteColor];
     [self.textAvatarLabel setConstantBackgroundColor:[UIColor colorWithRed:173.0/255.f green:175/255.f blue:231/255.f alpha:1]];
-    self.avatarLayerView.layer.cornerRadius = self.avatarLayerView.bounds.size.width / 2;
-    self.subLabel.textColor = [UIColor colorWithWhite:0.75 alpha:1];
-    
-    UIView *selectedBackgroundView = [UIView new];
-    selectedBackgroundView.backgroundColor = [UIColor colorWithWhite:0.93 alpha:1];
-    self.selectedBackgroundView = selectedBackgroundView;
-    self.backgroundColor = [UIColor whiteColor];
+    [self.avatarLayerView addSubview:self.textAvatarLabel];
+    [self.contentView addSubview:self.avatarLayerView];
 }
+
+- (void)setupChildLabels {
+    
+    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(61, 0, self.bounds.size.width - (16 + 61), 32)];
+    self.titleLabel.clipsToBounds = YES;
+    self.titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
+    [self.contentView addSubview:self.titleLabel];
+    
+    self.subLabel = [[UILabel alloc] initWithFrame:CGRectMake(61, self.contentView.bounds.size.height/2, self.bounds.size.width - (16 + 61), self.contentView.bounds.size.height/2)];
+    self.subLabel.clipsToBounds = YES;
+    self.subLabel.textColor = [UIColor colorWithWhite:0.75 alpha:1];
+    self.subLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin;
+    [self.contentView addSubview:self.subLabel];
+}
+
 
 #pragma mark - Private
 

@@ -27,7 +27,7 @@
 }
 
 - (UINib *)collectionViewCellNib {
-    return [UINib nibWithNibName:NSStringFromClass([DXShowPickedCollectionViewCell class]) bundle:nil];
+    return [UINib nibWithNibName:@"AAAAA" bundle:nil];
 }
 
 - (BOOL)shouldUpdateCellWithObject:(id)object {
@@ -38,7 +38,7 @@
 @end
 
 
-@interface DXShowPickedCollectionViewCell () <NICollectionViewNibCellObject>
+@interface DXShowPickedCollectionViewCell () <NICollectionViewCell>
 
 @property (weak, nonatomic) IBOutlet UIView *imageCoverView;
 @property (weak, nonatomic) IBOutlet UILabel *textAvatarLabel;
@@ -47,10 +47,6 @@
 @end
 
 @implementation DXShowPickedCollectionViewCell
-
-- (UINib *)collectionViewCellNib {
-    return [UINib nibWithNibName:NSStringFromClass([DXShowPickedCollectionViewCell class]) bundle:nil];
-}
 
 - (void)awakeFromNib {
     [super awakeFromNib];
@@ -70,6 +66,7 @@
 - (void)setupView {
     
     self.textAvatarLabel.textColor = [UIColor whiteColor];
+    self.textAvatarLabel.font = [UIFont systemFontOfSize:18 weight:1];
     self.textAvatarLabel.backgroundColor = [UIColor colorWithRed:173.0/255.f green:175/255.f blue:231/255.f alpha:1];
     self.textAvatarLabel.alpha = 0;
     self.avatarImgView.alpha = 1;

@@ -11,14 +11,14 @@
 
 @interface DXContactsDetailViewController ()
 
-@property (weak, nonatomic) IBOutlet UIView *avatarView;
-@property (weak, nonatomic) IBOutlet UILabel *avatarTextLabel;
-@property (weak, nonatomic) IBOutlet UIImageView *avatarImgView;
-@property (weak, nonatomic) IBOutlet UILabel *fullNameLabel;
-@property (weak, nonatomic) IBOutlet UILabel *birthDaylabel;
-@property (weak, nonatomic) IBOutlet UILabel *phoneLabel;
-@property (weak, nonatomic) IBOutlet UILabel *emailLabel;
-@property (weak, nonatomic) IBOutlet UILabel *addressLabel;
+@property (strong, nonatomic) UIView *avatarView;
+@property (strong, nonatomic) UILabel *avatarTextLabel;
+@property (strong, nonatomic) UIImageView *avatarImgView;
+@property (strong, nonatomic) UILabel *fullNameLabel;
+@property (strong, nonatomic) UILabel *birthDaylabel;
+@property (strong, nonatomic) UILabel *phoneLabel;
+@property (strong, nonatomic) UILabel *emailLabel;
+@property (strong, nonatomic) UILabel *addressLabel;
 
 @property (strong, nonatomic) DXContactModel *contactModel;
 
@@ -49,6 +49,11 @@
 }
 
 #pragma mark - SetUp View
+
+- (void)setupViews {
+    
+    self.avatarView = [[UIView alloc] initWithFrame:CGRectMake(0, 20, self.view.bounds.size.width, 50)];
+}
 
 - (void)setUpColor {
     

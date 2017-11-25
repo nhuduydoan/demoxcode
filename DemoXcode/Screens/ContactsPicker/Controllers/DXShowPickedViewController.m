@@ -15,7 +15,7 @@
 
 @interface DXShowPickedViewController () <UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
 
-@property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
+@property (strong, nonatomic) UICollectionView *collectionView;
 @property (nonatomic, strong) NIMutableCollectionViewModel *collectionViewModel;
 
 @property (strong, nonatomic) NSMutableArray *data;
@@ -35,7 +35,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    [self setupCollectionView];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -50,21 +49,30 @@
     self.data = [NSMutableArray new];
     NSMutableArray *tableViewData = [NSMutableArray new];
     for (id model in self.data) {
-//        NICollectionViewCellObject *object = [NICollectionViewCellObject objectWithCellClass:[DXShowPickedCollectionViewCell class] userInfo:model];
         DXShowPickedCollectionViewCellObject *obj = [[DXShowPickedCollectionViewCellObject alloc] initWithModel:model];
         [tableViewData addObject:obj];
     }
     self.collectionViewModel = [[NIMutableCollectionViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICollectionViewCellFactory class]];
-    [self.collectionView reloadData];
+    
+    [self setupCollectionView];
 }
 
 - (void)setupCollectionView {
+    
+    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+    layout.itemSize = CGSizeMake(46, 46);
+    layout.minimumInteritemSpacing = 8;
+    self.collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
+    self.collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.collectionView setBackgroundColor:[UIColor clearColor]];
+    [self.view addSubview:self.collectionView];
     
     self.collectionView.dataSource = self.collectionViewModel;
     self.collectionView.delegate = self;
     self.collectionView.showsVerticalScrollIndicator = NO;
     self.collectionView.showsHorizontalScrollIndicator = NO;
     self.collectionView.contentInset = UIEdgeInsetsMake(0, 8, 0, 8);
+    [self.collectionView reloadData];
 }
 
 #pragma mark - Public
@@ -84,7 +92,6 @@
     }
     
     [self.data addObject:model];
-//    NICollectionViewCellObject *object = [NICollectionViewCellObject objectWithCellClass:[DXShowPickedCollectionViewCell class] userInfo:model];
     DXShowPickedCollectionViewCellObject *obj = [[DXShowPickedCollectionViewCellObject alloc] initWithModel:model];
     NSArray *indexPaths = [self.collectionViewModel addObject:obj];
     [self.collectionView insertItemsAtIndexPaths:indexPaths];
@@ -96,13 +103,12 @@
         return;
     }
     
-    [self.data removeObject:model];
     NSInteger index = [self.data indexOfObject:model];
     if (index != NSNotFound) {
+        [self.data removeObject:model];
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
         NSArray *indexPaths = [self.collectionViewModel removeObjectAtIndexPath:indexPath];
         [self.collectionView deleteItemsAtIndexPaths:indexPaths];
-        [self.collectionView reloadData];
     }
 }
 

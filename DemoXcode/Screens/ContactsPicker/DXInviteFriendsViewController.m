@@ -15,8 +15,8 @@
 
 @interface DXInviteFriendsViewController () <UISearchBarDelegate, DXPickContactsViewControllerDelegate, DXShowPickedViewControllerDelegate>
 
-@property (weak, nonatomic) IBOutlet UIView *headerView;
-@property (weak, nonatomic) IBOutlet UIView *contentView;
+@property (strong, nonatomic) UIView *headerView;
+@property (strong, nonatomic) UIView *contentView;
 
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) DXShowPickedViewController *showPickedViewController;
@@ -58,9 +58,21 @@
 
 - (void)setupHeaderView {
     
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
+    self.headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     self.headerView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    self.showPickedViewController = [DXShowPickedViewController new];
+    
+    self.contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, self.view.bounds.size.width, self.view.bounds.size.height - 40)];
+    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
+    [self.view addSubview:self.headerView];
+    [self.view addSubview:self.contentView];
+    
     [self setUpSearchBar];
+    self.showPickedViewController = [DXShowPickedViewController new];
+    self.showPickedViewController.view.frame = CGRectMake(0, 0, 0, 0);
+    [self.headerView addSubview:self.showPickedViewController.view];
 }
 
 - (void)setUpSearchBar {

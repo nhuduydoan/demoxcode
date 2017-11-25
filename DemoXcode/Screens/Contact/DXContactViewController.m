@@ -16,8 +16,8 @@
 
 @interface DXContactViewController () <UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
 
-@property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) IBOutlet UILabel *noResultLabel;
+@property (strong, nonatomic) UITableView *tableView;
+@property (strong, nonatomic) UILabel *noResultLabel;
 
 @property (strong, nonatomic) UIBarButtonItem *closeBarButtonItem;
 @property (strong, nonatomic) UIBarButtonItem *searchBarButtonItem;
@@ -73,10 +73,14 @@
 
 - (void)setUpTableView {
     
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds];
+    self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:self.tableView];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     self.tableView.rowHeight = 64;
-    [self.tableView registerNib:[UINib nibWithNibName:NSStringFromClass([DXContactTableViewCell class]) bundle:nil] forCellReuseIdentifier:ContactTableViewCell];
+    [self.tableView registerClass:[DXContactTableViewCell class] forCellReuseIdentifier:ContactTableViewCell];
     self.tableView.separatorColor = [UIColor colorWithWhite:0.85 alpha:1];
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];

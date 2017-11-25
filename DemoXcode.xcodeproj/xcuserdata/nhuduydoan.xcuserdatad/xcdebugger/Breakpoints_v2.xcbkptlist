@@ -19,13 +19,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DemoXcode/Screens/ContactsPicker/Controllers/View/DXShowPickedCollectionViewCell.m"
-            timestampString = "533216902.430121"
+            filePath = "DemoXcode/Screens/Contact/View/DXContactTableViewCell.m"
+            timestampString = "533273918.64663"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "29"
-            endingLineNumber = "29"
-            landmarkName = "-collectionViewCellNib"
+            startingLineNumber = "119"
+            endingLineNumber = "119"
+            landmarkName = "-displayContactModel:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -35,13 +35,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DemoXcode/Screens/ContactsPicker/Controllers/View/DXShowPickedCollectionViewCell.m"
-            timestampString = "533216906.030028"
+            filePath = "DemoXcode/Common/Nimbus/Collections/NICollectionViewCellFactory.m"
+            timestampString = "533275756.028397"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "33"
-            endingLineNumber = "33"
-            landmarkName = "-shouldUpdateCellWithObject:"
+            startingLineNumber = "144"
+            endingLineNumber = "144"
+            landmarkName = "-collectionViewModel:cellForCollectionView:atIndexPath:withObject:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -51,13 +51,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DemoXcode/Screens/ContactsPicker/Controllers/View/DXShowPickedCollectionViewCell.m"
-            timestampString = "533216909.046538"
+            filePath = "DemoXcode/Common/Nimbus/Collections/NICollectionViewCellFactory.m"
+            timestampString = "533275757.22727"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "124"
-            endingLineNumber = "124"
-            landmarkName = "-shouldUpdateCellWithObject:"
+            startingLineNumber = "132"
+            endingLineNumber = "132"
+            landmarkName = "-collectionViewModel:cellForCollectionView:atIndexPath:withObject:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

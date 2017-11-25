@@ -13,8 +13,8 @@
 
 @interface DXHomeViewController ()
 
-@property (weak, nonatomic) IBOutlet UIButton *getContactsButton;
-@property (weak, nonatomic) IBOutlet UIButton *pickContactsButton;
+@property (strong, nonatomic) UIButton *getContactsButton;
+@property (strong, nonatomic) UIButton *pickContactsButton;
 
 @end
 
@@ -36,10 +36,31 @@
 
 - (void)setUpView {
     
+    UILabel *txt = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 300, 100)];
+    txt.backgroundColor = [UIColor redColor];
+    
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    self.getContactsButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 150, 50)];
+    self.getContactsButton.center = self.view.center;
+    self.getContactsButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+    [self.getContactsButton addTarget:self action:@selector(touchUpInsideGetContactsButton:) forControlEvents:UIControlEventTouchUpInside];
     self.getContactsButton.layer.cornerRadius = 8;
     self.getContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
+    [self.getContactsButton setTitle:@"All Contacts" forState:UIControlStateNormal];
+    
+    CGRect buttonFr = self.getContactsButton.frame;
+    self.pickContactsButton = [[UIButton alloc] initWithFrame:CGRectMake(buttonFr.origin.x, buttonFr.origin.y + 80, 150, 50)];
+    self.pickContactsButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
+    [self.pickContactsButton addTarget:self action:@selector(touchUpInsidePickContactsButton:) forControlEvents:UIControlEventTouchUpInside];
+    self.pickContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:100/255.f blue:100/255.f alpha:1];
+    
     self.pickContactsButton.layer.cornerRadius = 8;
     self.pickContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
+    [self.pickContactsButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
+    
+    [self.view addSubview:self.getContactsButton];
+    [self.view addSubview:self.pickContactsButton];
 }
 
 #pragma mark - Private

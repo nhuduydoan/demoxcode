@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "DXHomeViewController.h"
+#import "DXViewController.h"
 
 @interface AppDelegate ()
 
@@ -19,7 +20,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
-    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    CGRect screen =  [UIScreen mainScreen].bounds;
+    self.window = [[UIWindow alloc] initWithFrame:screen];
     DXHomeViewController *homeViewController = [DXHomeViewController new];
     UINavigationController *navHome = [[UINavigationController alloc] initWithRootViewController:homeViewController];
     self.window.rootViewController = navHome;
