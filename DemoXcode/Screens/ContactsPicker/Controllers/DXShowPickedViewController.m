@@ -13,10 +13,11 @@
 
 #define ShowPickedCell @"ShowPickedCell"
 
-@interface DXShowPickedViewController () <UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
+@interface DXShowPickedViewController () <UICollectionViewDelegate>
 
 @property (strong, nonatomic) UICollectionView *collectionView;
 @property (nonatomic, strong) NIMutableCollectionViewModel *collectionViewModel;
+@property (nonatomic, retain) NICollectionViewActions *actions;
 
 @property (strong, nonatomic) NSMutableArray *data;
 
@@ -28,6 +29,7 @@
     self = [super init];
     if (self) {
         [self setupCollectionViewModel];
+        [self setupCollectionView];
     }
     return self;
 }
@@ -46,15 +48,23 @@
 
 - (void)setupCollectionViewModel {
     
+    self.actions = [[NICollectionViewActions alloc] initWithTarget:self];
     self.data = [NSMutableArray new];
     NSMutableArray *tableViewData = [NSMutableArray new];
+    weakify(self);
     for (id model in self.data) {
         DXShowPickedCollectionViewCellObject *obj = [[DXShowPickedCollectionViewCellObject alloc] initWithModel:model];
         [tableViewData addObject:obj];
+        
+        [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
+            id model = [object userInfo];
+            if ([self_weak_.delegate respondsToSelector:@selector(showPickedViewController:didSelectModel:)]) {
+                [self_weak_.delegate showPickedViewController:self_weak_ didSelectModel:model];
+            }
+            return NO;
+        }];
     }
     self.collectionViewModel = [[NIMutableCollectionViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICollectionViewCellFactory class]];
-    
-    [self setupCollectionView];
 }
 
 - (void)setupCollectionView {

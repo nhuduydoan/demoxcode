@@ -47,57 +47,11 @@
     self.tableView.tableFooterView = [UIView new];
 }
 
-#pragma mark - Public
-
-- (void)reloadWithData:(NSArray *)data {
+- (void)setUpNonSectionedTableViewModelWithData:(NSArray *)data {
     
-    [self updateNonSectionedTableViewModelWithData:data];
-    [self.tableView reloadData];
-}
-
-- (void)didSelectModel:(id)model {
-    
-    if (![self.data containsObject:model]) {
-        return;
-    }
-    
-    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:model];
-    if (indexPath != nil) {
-        [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
-    }
-}
-
-- (void)deSelectModel:(id)model {
-    
-    if (![self.data containsObject:model]) {
-        return;
-    }
-    
-    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:model];
-    if (indexPath != nil) {
-        [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
-    }
-}
-
-- (void)scrollToContactModel:(id)model {
-    
-    if (![self.data containsObject:model]) {
-        return;
-    }
-    
-    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:model];
-    if (indexPath != nil) {
-        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
-    }
-}
-
-#pragma mark - Private
-
-- (void)updateNonSectionedTableViewModelWithData:(NSArray *)data {
-    
-    self.data = [self arrangeNonSectionedWithData:data];
+    NSArray *arrangedData = [self arrangeNonSectionedWithData:data];
     NSMutableArray *tableViewData = [NSMutableArray new];
-    for (id model in self.data) {
+    for (id model in arrangedData) {
         if (![model isKindOfClass:[NSString class]]) {
             NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
             [tableViewData addObject:cellObject];
@@ -106,16 +60,17 @@
         }
     }
     
+    self.data = tableViewData;
     self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexNone
                                  showsSearch:NO
                                 showsSummary:NO];
     
     self.tableView.dataSource = self.tableviewModel;
-    [self updateTableViewActionsWithData:tableViewData];
+    [self setUpTableViewActionsWithData:tableViewData];
 }
 
-- (void)updateTableViewActionsWithData:(NSArray *)data {
+- (void)setUpTableViewActionsWithData:(NSArray *)data {
     
     self.actions = [[NITableViewActions alloc] initWithTarget:self];
     weakify(self);
@@ -132,6 +87,65 @@
         }];
     }
     self.tableView.delegate = [self.actions forwardingTo:self];
+}
+
+#pragma mark - Public
+
+- (void)reloadWithData:(NSArray *)data {
+    
+    [self setUpNonSectionedTableViewModelWithData:data];
+    [self.tableView reloadData];
+}
+
+- (void)didSelectModel:(id)model {
+    
+    if ([self cellObjectForModel:model] != nil) {
+        return;
+    }
+    
+    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
+    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:cellObject];
+    if (indexPath != nil) {
+        [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
+    }
+}
+
+- (void)deSelectModel:(id)model {
+    
+    NICellObject *cellObject = [self cellObjectForModel:model];
+    if (cellObject == nil) {
+        return;
+    }
+    
+    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:cellObject];
+    if (indexPath != nil) {
+        [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    }
+}
+
+- (void)scrollToContactModel:(id)model {
+    
+    NICellObject *cellObject = [self cellObjectForModel:model];
+    if (cellObject == nil) {
+        return;
+    }
+    
+    NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:cellObject];
+    if (indexPath != nil) {
+        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    }
+}
+
+#pragma mark - Private
+
+- (id)cellObjectForModel:(id)model {
+    
+    for (NICellObject *object in self.data) {
+        if ([object isKindOfClass:[NICellObject class]] && [object.userInfo isEqual:model]) {
+            return object;
+        }
+    }
+    return nil;
 }
 
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
@@ -184,9 +198,9 @@
 #pragma mark - UITableView Delegate
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
-    id model = [self.data objectAtIndex:indexPath.row];
+    NICellObject *cellObject = [self.data objectAtIndex:indexPath.row];
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
-        [self.delegate pickContactsViewController:self didDeSelectModel:model];
+        [self.delegate pickContactsViewController:self didDeSelectModel:cellObject.userInfo];
     }
 }
 

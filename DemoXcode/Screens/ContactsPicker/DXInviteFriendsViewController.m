@@ -36,8 +36,7 @@
     self.originalData = [NSArray new];
     [self setupNavigationBarItems];
     [self setupHeaderView];
-    [self setupPickContactsViewController];
-    [self setupSearchResultViewController];
+    [self setUpContentView];
     [self getAllContactsData];
 }
 
@@ -62,17 +61,10 @@
     self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
     self.headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     self.headerView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    
-    self.contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, self.view.bounds.size.width, self.view.bounds.size.height - 40)];
-    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
     [self.view addSubview:self.headerView];
-    [self.view addSubview:self.contentView];
     
     [self setUpSearchBar];
-    self.showPickedViewController = [DXShowPickedViewController new];
-    self.showPickedViewController.view.frame = CGRectMake(0, 0, 0, 0);
-    [self.headerView addSubview:self.showPickedViewController.view];
+    [self setupShowPickedViewController];
 }
 
 - (void)setUpSearchBar {
@@ -90,6 +82,24 @@
     
     [self.headerView addSubview:searchBar];
     self.searchBar = searchBar;
+}
+
+- (void)setUpContentView {
+    
+    self.contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, self.view.bounds.size.width, self.view.bounds.size.height - 40)];
+    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:self.contentView];
+    
+    [self setupPickContactsViewController];
+    [self setupSearchResultViewController];
+}
+
+- (void)setupShowPickedViewController {
+    
+    self.showPickedViewController = [DXShowPickedViewController new];
+    self.showPickedViewController.delegate = self;
+    self.showPickedViewController.view.frame = CGRectMake(0, 0, 0, 0);
+    [self.headerView addSubview:self.showPickedViewController.view];
 }
 
 - (void)setupPickContactsViewController {
