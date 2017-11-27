@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		5C1D55911FC65D3D0059F452 /* DXContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1D558F1FC65D3D0059F452 /* DXContactTableViewCell.m */; };
 		5C1D55971FC65D6D0059F452 /* DXPickContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1D55951FC65D6D0059F452 /* DXPickContactTableViewCell.m */; };
-		5C1D559B1FC65DE60059F452 /* DXContactAvatarLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1D559A1FC65DE60059F452 /* DXContactAvatarLabel.m */; };
 		5C1D55A81FC6A4130059F452 /* DXInviteFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1D55A61FC6A4130059F452 /* DXInviteFriendsViewController.m */; };
 		5C1E908A1FC2E56600ADC5D6 /* DXHomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E90881FC2E56600ADC5D6 /* DXHomeViewController.m */; };
 		5C1E908E1FC2E5FC00ADC5D6 /* DXContactViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C1E908C1FC2E5FC00ADC5D6 /* DXContactViewController.m */; };
@@ -58,6 +57,7 @@
 		5CC179501FC6CDC500E3D261 /* DXPickContactsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC1794D1FC6CDC500E3D261 /* DXPickContactsViewController.m */; };
 		5CC179541FC6CDE500E3D261 /* DXShowPickedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC179521FC6CDE500E3D261 /* DXShowPickedViewController.m */; };
 		5CC179591FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC179571FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m */; };
+		5CE0D1BC1FCBFF4700CCE134 /* DXApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */; };
 		5CF46FD31FC7C11F00409E1A /* NIMutableCollectionViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CF46FC81FC7C11F00409E1A /* NIMutableCollectionViewModel.m */; };
 		5CF46FD41FC7C11F00409E1A /* NICollectionViewActions.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CF46FCA1FC7C11F00409E1A /* NICollectionViewActions.m */; };
 		5CF46FD51FC7C11F00409E1A /* NICollectionViewCellFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CF46FCC1FC7C11F00409E1A /* NICollectionViewCellFactory.m */; };
@@ -70,8 +70,6 @@
 		5C1D558F1FC65D3D0059F452 /* DXContactTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXContactTableViewCell.m; sourceTree = "<group>"; };
 		5C1D55941FC65D6D0059F452 /* DXPickContactTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXPickContactTableViewCell.h; sourceTree = "<group>"; };
 		5C1D55951FC65D6D0059F452 /* DXPickContactTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXPickContactTableViewCell.m; sourceTree = "<group>"; };
-		5C1D55991FC65DE60059F452 /* DXContactAvatarLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactAvatarLabel.h; sourceTree = "<group>"; };
-		5C1D559A1FC65DE60059F452 /* DXContactAvatarLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactAvatarLabel.m; sourceTree = "<group>"; };
 		5C1D55A51FC6A4130059F452 /* DXInviteFriendsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXInviteFriendsViewController.h; sourceTree = "<group>"; };
 		5C1D55A61FC6A4130059F452 /* DXInviteFriendsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXInviteFriendsViewController.m; sourceTree = "<group>"; };
 		5C1E90861FC2E56600ADC5D6 /* DXHomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXHomeViewController.h; sourceTree = "<group>"; };
@@ -173,6 +171,8 @@
 		5CC179521FC6CDE500E3D261 /* DXShowPickedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXShowPickedViewController.m; sourceTree = "<group>"; };
 		5CC179561FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXShowPickedCollectionViewCell.h; sourceTree = "<group>"; };
 		5CC179571FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXShowPickedCollectionViewCell.m; sourceTree = "<group>"; };
+		5CE0D1BA1FCBFF4700CCE134 /* DXApplication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXApplication.h; sourceTree = "<group>"; };
+		5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXApplication.m; sourceTree = "<group>"; };
 		5CF46FC81FC7C11F00409E1A /* NIMutableCollectionViewModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NIMutableCollectionViewModel.m; sourceTree = "<group>"; };
 		5CF46FC91FC7C11F00409E1A /* NICollectionViewModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NICollectionViewModel.h; sourceTree = "<group>"; };
 		5CF46FCA1FC7C11F00409E1A /* NICollectionViewActions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NICollectionViewActions.m; sourceTree = "<group>"; };
@@ -217,8 +217,6 @@
 			children = (
 				5C1D558E1FC65D3D0059F452 /* DXContactTableViewCell.h */,
 				5C1D558F1FC65D3D0059F452 /* DXContactTableViewCell.m */,
-				5C1D55991FC65DE60059F452 /* DXContactAvatarLabel.h */,
-				5C1D559A1FC65DE60059F452 /* DXContactAvatarLabel.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -450,6 +448,8 @@
 				5C1E90791FC2E4E600ADC5D6 /* Screens */,
 				5C957E941FC2C5DB00B2E6F1 /* AppDelegate.h */,
 				5C957E951FC2C5DB00B2E6F1 /* AppDelegate.m */,
+				5CE0D1BA1FCBFF4700CCE134 /* DXApplication.h */,
+				5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */,
 				5C576AB41FC410C000FFFB09 /* Resources */,
 				5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */,
 				5C61CE901FC91527002F5A32 /* LaunchScreen.storyboard */,
@@ -563,7 +563,6 @@
 				5C27EC431FC576010065E6B6 /* NIRadioGroup.m in Sources */,
 				5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */,
 				5C27EC181FC575F30065E6B6 /* NIInMemoryCache.m in Sources */,
-				5C1D559B1FC65DE60059F452 /* DXContactAvatarLabel.m in Sources */,
 				5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */,
 				5CC179501FC6CDC500E3D261 /* DXPickContactsViewController.m in Sources */,
 				5C27EC481FC576010065E6B6 /* NIFormCellCatalog.m in Sources */,
@@ -594,6 +593,7 @@
 				5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */,
 				5CF46FD41FC7C11F00409E1A /* NICollectionViewActions.m in Sources */,
 				5CF46FD31FC7C11F00409E1A /* NIMutableCollectionViewModel.m in Sources */,
+				5CE0D1BC1FCBFF4700CCE134 /* DXApplication.m in Sources */,
 				5C27EC1C1FC575F30065E6B6 /* NINetworkActivity.m in Sources */,
 				5C27EC241FC575F30065E6B6 /* NIState.m in Sources */,
 				5C1E908E1FC2E5FC00ADC5D6 /* DXContactViewController.m in Sources */,

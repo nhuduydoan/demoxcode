@@ -19,5 +19,6 @@
 @property (strong, nonatomic, readonly) UIImage *avatar;
 
 - (instancetype)initWithFullName:(NSString *)fullName birthDay:(NSString *)birthDay phones:(NSArray *)phones emails:(NSArray *)emails addressArray:(NSArray *)addressArray avatar:(UIImage *)image;
+- (void)updateAvatar:(UIImage *)avatar;
 
 @end

@@ -34,6 +34,10 @@
     return self;
 }
 
+- (void)updateAvatar:(UIImage *)avatar {
+    _avatar = avatar;
+}
+
 //- (id)copy {
 //    
 //    DXContactModel *newObj = [[[self class] alloc] init];

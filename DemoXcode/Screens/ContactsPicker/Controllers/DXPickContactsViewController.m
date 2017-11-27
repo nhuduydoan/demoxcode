@@ -43,6 +43,8 @@
     self.tableView.editing = YES;
     self.tableView.rowHeight = 64;
     self.tableView.tableFooterView = [UIView new];
+    
+    self.tableView.separatorColor = [UIColor colorWithRed:223/255.f green:226/255.f blue:227/255.f alpha:1];
     if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
         [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 100, 0, 0)];
     }
@@ -90,20 +92,23 @@
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
     
     self.actions = [[NITableViewActions alloc] initWithTarget:self];
-    weakify(self);
     for (id obj in data) {
         if ([obj isKindOfClass:[NSString class]]) {
             continue;
         }
-        [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
-            id model = [object userInfo];
-            if ([self_weak_.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
-                [self_weak_.delegate pickContactsViewController:self_weak_ didSelectModel:model];
-            }
-            return NO;
-        }];
+        [self.actions attachToObject:obj tapSelector:@selector(didSelectObject:atIndexPath:)];
     }
     self.tableView.delegate = [self.actions forwardingTo:self];
+}
+
+- (BOOL)didSelectObject:(id)object atIndexPath:(NSIndexPath *)indexPath {
+    
+    id model = [object userInfo];
+    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
+        BOOL isSelected = [self.delegate pickContactsViewController:self didSelectModel:model];
+        return !isSelected;
+    }
+    return YES;
 }
 
 #pragma mark - Public
@@ -174,7 +179,7 @@
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
     NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
     
-    NSMutableArray *arrangedData = [NSMutableArray new];
+    NSMutableArray *alphabetArray = [NSMutableArray new];
     NSMutableArray *sharpArray = [NSMutableArray new];
     NSInteger count = sortedArray.count;
     NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
@@ -195,19 +200,19 @@
                 if (![firstKey isEqualToString:groupKey]) {
                     // If First Key is new key
                     groupKey = firstKey;
-                    [arrangedData addObject:groupKey];
+                    [alphabetArray addObject:groupKey];
                 }
-                [arrangedData addObject:contact];
+                [alphabetArray addObject:contact];
             }
         }
     }
     
     if (sharpArray.count > 0) {
-        [arrangedData addObject:@"#"];
-        [arrangedData addObjectsFromArray:sharpArray];
+        [sharpArray insertObject:@"#" atIndex:0];
+        [sharpArray addObjectsFromArray:alphabetArray];
     }
     
-    return arrangedData;
+    return sharpArray;
 }
 
 - (id)objectAtIndexPath:(NSIndexPath *)indexPath {
@@ -225,10 +230,38 @@
     return nil;
 }
 
+- (NSString *)titleForSection:(NSInteger)section {
+    
+    NSInteger index = 0;
+    for (id obj in self.data) {
+        if ([obj isKindOfClass:[NSString class]]) {
+            if (index == section) {
+                return obj;
+            } else {
+                index += 1;
+            }
+        }
+    }
+    return nil;
+}
+
 #pragma mark - NITableViewModelDelegate
 
 - (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel cellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withObject:(id)object {
     return [NICellFactory tableViewModel:tableViewModel cellForTableView:tableView atIndexPath:indexPath withObject:object];
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    
+    NSString *sectionTitle = [self titleForSection:section];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 10)];
+    view.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, 20, 10)];
+    
+    titleLabel.text = sectionTitle;
+    titleLabel.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+    [view addSubview:titleLabel];
+    return view;
 }
 
 #pragma mark - NIMutableTableViewModelDelegate
@@ -251,6 +284,23 @@
     if ([self.delegate respondsToSelector:@selector(didTapOnPickContactsViewController:)]) {
         [self.delegate didTapOnPickContactsViewController:self];
     }
+}
+
+- (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    [self setCellColor:[UIColor colorWithRed:235/255.f green:235/255.f blue:235/255.f alpha:1.0] forCell:cell];  //highlight colour
+}
+
+- (void)tableView:(UITableView *)tableView didUnhighlightRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    [self setCellColor:[UIColor clearColor] forCell:cell]; //normal color
+}
+
+- (void)setCellColor:(UIColor *)color forCell:(UITableViewCell *)cell {
+    cell.contentView.backgroundColor = color;
+    cell.backgroundColor = color;
 }
 
 @end

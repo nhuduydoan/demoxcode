@@ -45,6 +45,8 @@
     self.tableView.editing = YES;
     self.tableView.rowHeight = 64;
     self.tableView.tableFooterView = [UIView new];
+    
+    self.tableView.separatorColor = [UIColor colorWithRed:223/255.f green:226/255.f blue:227/255.f alpha:1];
     if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
         [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 100, 0, 0)];
     }
@@ -77,9 +79,10 @@
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             id model = [object userInfo];
             if ([self_weak_.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
-                [self_weak_.delegate pickContactsViewController:self didSelectModel:model];
+                BOOL isSelected = [self_weak_.delegate pickContactsViewController:self didSelectModel:model];
+                return !isSelected;
             }
-            return NO;
+            return YES;
         }];
     }
     self.tableView.delegate = [self.actions forwardingTo:self];
@@ -200,10 +203,10 @@
         }
     }
     
-    if (sharpArray.count > 0) {
-        [alphabetArray addObjectsFromArray:sharpArray];
+    if (alphabetArray.count > 0) {
+        [sharpArray addObjectsFromArray:alphabetArray];
     }
-    return alphabetArray;
+    return sharpArray;
 }
 
 #pragma mark - NITableViewModelDelegate
@@ -221,6 +224,7 @@
 #pragma mark - UITableView Delegate
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
     NICellObject *cellObject = [self.data objectAtIndex:indexPath.row];
     id model = cellObject.userInfo;
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
@@ -229,9 +233,27 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    
     if ([self.delegate respondsToSelector:@selector(didTapOnPickContactsViewController:)]) {
         [self.delegate didTapOnPickContactsViewController:self];
     }
+}
+
+- (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    [self setCellColor:[UIColor colorWithRed:235/255.f green:235/255.f blue:235/255.f alpha:1.0] forCell:cell];  //highlight colour
+}
+
+- (void)tableView:(UITableView *)tableView didUnhighlightRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    [self setCellColor:[UIColor clearColor] forCell:cell]; //normal color
+}
+
+- (void)setCellColor:(UIColor *)color forCell:(UITableViewCell *)cell {
+    cell.contentView.backgroundColor = color;
+    cell.backgroundColor = color;
 }
 
 @end

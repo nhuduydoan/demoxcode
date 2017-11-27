@@ -44,7 +44,7 @@
     // Dispose of any resources that can be recreated.
 }
 
-#pragma mark - SetUp View {
+#pragma mark - SetUp View
 
 - (void)setupCollectionViewModel {
     
@@ -73,17 +73,17 @@
 - (void)setupCollectionView {
     
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-    layout.itemSize = CGSizeMake(46, 46);
+    layout.itemSize = CGSizeMake(40, 40);
     layout.minimumInteritemSpacing = 8;
     self.collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
     self.collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.collectionView setBackgroundColor:[UIColor clearColor]];
-    [self.view addSubview:self.collectionView];
-    
     self.collectionView.delegate = self;
     self.collectionView.showsVerticalScrollIndicator = NO;
     self.collectionView.showsHorizontalScrollIndicator = NO;
+    self.collectionView.scrollEnabled = NO;
     self.collectionView.contentInset = UIEdgeInsetsMake(0, 8, 0, 8);
+    [self.collectionView setBackgroundColor:[UIColor clearColor]];
+    [self.view addSubview:self.collectionView];
 }
 
 #pragma mark - Public

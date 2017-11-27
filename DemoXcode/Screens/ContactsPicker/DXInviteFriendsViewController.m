@@ -20,6 +20,7 @@
 
 @property (strong, nonatomic) UIBarButtonItem *closeBarButtonItem;
 @property (strong, nonatomic) UIBarButtonItem *inviteBarButtonItem;
+@property (strong, nonatomic) UILabel *subTitlelabel;
 
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) DXShowPickedViewController *showPickedViewController;
@@ -37,6 +38,7 @@
     // Do any additional setup after loading the view from its nib.
     
     self.originalData = [NSArray new];
+    [self setupTitleView];
     [self setupNavigationBarItems];
     [self setupHeaderView];
     [self setUpContentView];
@@ -52,7 +54,6 @@
 
 - (void)setupNavigationBarItems {
     
-    self.title = @"Invite Friends";
     self.navigationController.navigationBar.translucent = NO;
     self.closeBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(touchUpCloseBarButtonItem)];
     self.navigationItem.leftBarButtonItem = self.closeBarButtonItem;
@@ -62,12 +63,51 @@
     [self.inviteBarButtonItem setEnabled:NO];
 }
 
+- (void)setupTitleView {
+    
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
+    UILabel *mainLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 8, 320, 18)];
+    UILabel *subTitlelabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 26, 320, 14)];
+    mainLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    subTitlelabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    
+    mainLabel.font = [UIFont systemFontOfSize:17];
+    mainLabel.textAlignment = NSTextAlignmentCenter;
+    subTitlelabel.textAlignment = NSTextAlignmentCenter;
+    subTitlelabel.font = [UIFont systemFontOfSize:10];
+    mainLabel.text = @"Chọn bạn";
+    subTitlelabel.text = @"0/5";
+    
+    [view addSubview:mainLabel];
+    [view addSubview:subTitlelabel];
+    self.navigationItem.titleView = view;
+    self.subTitlelabel = subTitlelabel;
+}
+
+- (void)updateControllerTitle {
+    
+    NSInteger selectedContact = self.showPickedViewController.pickedModels.count;
+    NSString *subTitle = [NSString stringWithFormat:@"%zd/5", selectedContact];
+    self.subTitlelabel.text = subTitle;
+    
+    [UIView animateWithDuration:0.1 delay:0.2 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.subTitlelabel.font = [UIFont systemFontOfSize:14];
+    } completion:^(BOOL finished) {
+        self.subTitlelabel.font = [UIFont systemFontOfSize:14];
+        [UIView animateWithDuration:0.1 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.subTitlelabel.font = [UIFont systemFontOfSize:10];
+        } completion:^(BOOL finished) {
+            self.subTitlelabel.font = [UIFont systemFontOfSize:10];
+        }];
+    }];
+}
+
 - (void)setupHeaderView {
     
     self.view.backgroundColor = [UIColor whiteColor];
     self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
     self.headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.headerView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
+    self.headerView.backgroundColor = [UIColor colorWithRed:230/255.f green:230/255.f blue:230/255.f alpha:1.0];
     [self.view addSubview:self.headerView];
     
     [self setUpSearchBar];
@@ -164,7 +204,7 @@
         if (isShow) {
             [self addChildViewController:self.showPickedViewController];
             [self.showPickedViewController didMoveToParentViewController:self];
-            self.showPickedViewController.view.frame = CGRectMake(0, 6, self.headerView.bounds.size.width, 48);
+            self.showPickedViewController.view.frame = CGRectMake(0, 10, self.headerView.bounds.size.width, 44);
             self.showPickedViewController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             [self.headerView insertSubview:self.showPickedViewController.view atIndex:0];
         } else {
@@ -215,6 +255,7 @@
         [self displayShowPickedViewController:YES];
         [self.inviteBarButtonItem setEnabled:YES];
     }
+    [self updateControllerTitle];
 }
 
 - (void)deSelectModel:(id)model {
@@ -224,6 +265,7 @@
         [self displayShowPickedViewController:NO];
         [self.inviteBarButtonItem setEnabled:NO];
     }
+    [self updateControllerTitle];
 }
 
 - (void)hideKeyBoard {
@@ -270,7 +312,14 @@
     return [self isSelectedModel:model];
 }
 
-- (void)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model {
+- (BOOL)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model {
+    
+    if (self.showPickedViewController.pickedModels.count >= 5) {
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Thông báo" message:@"Bạn không được chọn quá 5 người" preferredStyle:UIAlertControllerStyleAlert];
+        [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDestructive handler:nil]];
+        [self presentViewController:alertController animated:YES completion:nil];
+        return NO;
+    }
     
     [self selectModel:model];
     if (controller == self.pickContactsViewController) {
@@ -279,6 +328,7 @@
         [self.pickContactsViewController didSelectModel:model];
     }
     [self hideKeyBoard];
+    return YES;
 }
 
 - (void)pickContactsViewController:(UIViewController *)controller didDeSelectModel:(id)model {

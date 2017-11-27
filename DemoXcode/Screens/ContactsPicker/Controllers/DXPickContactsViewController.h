@@ -12,7 +12,7 @@
 
 @required
 - (BOOL)pickContactsViewController:(UIViewController *)controller isSelectedModel:(id)model;
-- (void)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model;
+- (BOOL)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model;
 - (void)pickContactsViewController:(UIViewController *)controller didDeSelectModel:(id)model;
 
 @optional
