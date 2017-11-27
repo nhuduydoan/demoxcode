@@ -237,17 +237,13 @@
 
 - (void)touchUpCloseBarButtonItem {
     
-    if ([self.searchBar isFirstResponder]) {
-        [self.searchBar resignFirstResponder];
-    }
+    [self hideKeyBoard];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)touchUpInviteButton {
     
-    if ([self.searchBar isFirstResponder]) {
-        [self.searchBar resignFirstResponder];
-    }
+    [self hideKeyBoard];
     
     NSArray *selectedFriends = [self.showPickedViewController pickedModels];
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Your selected friends" message:@"" preferredStyle:UIAlertControllerStyleActionSheet];
@@ -309,6 +305,7 @@
     } else {
         [self.pickContactsViewController scrollToContactModel:model];
     }
+    [self hideKeyBoard];
 }
 
 @end

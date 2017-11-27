@@ -91,6 +91,18 @@
     
     [self setUpNonSectionedTableViewModelWithData:data];
     [self.tableView reloadData];
+    
+    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
+        for (id obj  in self.data) {
+            if (![obj isKindOfClass:[NICellObject class]]) {
+                continue;
+            }
+            if ([self.delegate pickContactsViewController:self isSelectedModel:[obj userInfo]]) {
+                NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:obj];
+                [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
+            }
+        }
+    }
 }
 
 - (void)didSelectModel:(id)model {
@@ -197,14 +209,7 @@
 #pragma mark - NITableViewModelDelegate
 
 - (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel cellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withObject:(id)object {
-    UITableViewCell *cell = [NICellFactory tableViewModel:tableViewModel cellForTableView:tableView atIndexPath:indexPath withObject:object];
-    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
-        BOOL isSelected = [self.delegate pickContactsViewController:self isSelectedModel:[object userInfo]];
-        if (isSelected) {
-            [tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
-        }
-    }
-    return cell;
+    return [NICellFactory tableViewModel:tableViewModel cellForTableView:tableView atIndexPath:indexPath withObject:object];
 }
 
 #pragma mark - NIMutableTableViewModelDelegate
