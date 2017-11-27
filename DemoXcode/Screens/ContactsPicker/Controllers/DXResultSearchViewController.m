@@ -45,29 +45,25 @@
     self.tableView.editing = YES;
     self.tableView.rowHeight = 64;
     self.tableView.tableFooterView = [UIView new];
+    if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
+        [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 100, 0, 0)];
+    }
+    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) {
+        [self.tableView setLayoutMargins:UIEdgeInsetsZero];
+    }
 }
 
 - (void)setUpNonSectionedTableViewModelWithData:(NSArray *)data {
     
-    NSArray *arrangedData = [self arrangeNonSectionedWithData:data];
-    NSMutableArray *tableViewData = [NSMutableArray new];
-    for (id model in arrangedData) {
-        if (![model isKindOfClass:[NSString class]]) {
-            NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
-            [tableViewData addObject:cellObject];
-        } else {
-            [tableViewData addObject:model];
-        }
-    }
-    
-    self.data = tableViewData;
-    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:self];
+    self.data = [self tableViewDataFromData:data];
+    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:self.data delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexNone
                                  showsSearch:NO
                                 showsSummary:NO];
     
+    [self setUpTableViewActionsWithData:self.data];
     self.tableView.dataSource = self.tableviewModel;
-    [self setUpTableViewActionsWithData:tableViewData];
+    [self.tableView reloadData];
 }
 
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
@@ -148,10 +144,25 @@
     return nil;
 }
 
+- (NSArray *)tableViewDataFromData:(NSArray *)data {
+    
+    NSArray *arrangedData = [self arrangeNonSectionedWithData:data];
+    NSMutableArray *tableViewData = [NSMutableArray new];
+    for (id model in arrangedData) {
+        if (![model isKindOfClass:[NSString class]]) {
+            NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
+            [tableViewData addObject:cellObject];
+        } else {
+            [tableViewData addObject:model];
+        }
+    }
+    return tableViewData;
+}
+
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
     
     if (data.count == 0) {
-        return [NSArray new];
+        return [NSMutableArray new];
     }
     
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];

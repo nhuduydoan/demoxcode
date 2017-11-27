@@ -211,8 +211,6 @@
 - (void)selectModel:(id)model {
     
     [self.showPickedViewController addPickedModel:model];
-    [self.pickContactsViewController didSelectModel:model];
-    [self.searchResultViewController didSelectModel:model];
     if (self.showPickedViewController.pickedModels.count == 1) {
         [self displayShowPickedViewController:YES];
         [self.inviteBarButtonItem setEnabled:YES];
@@ -222,8 +220,6 @@
 - (void)deSelectModel:(id)model {
     
     [self.showPickedViewController removePickedModel:model];
-    [self.pickContactsViewController deSelectModel:model];
-    [self.searchResultViewController deSelectModel:model];
     if (self.showPickedViewController.pickedModels.count == 0) {
         [self displayShowPickedViewController:NO];
         [self.inviteBarButtonItem setEnabled:NO];
@@ -274,18 +270,29 @@
 
 #pragma mark - DXPickContactsViewControllerDelegate
 
-- (BOOL)pickContactsViewController:(DXPickContactsViewController *)controller isSelectedModel:(id)model {
+- (BOOL)pickContactsViewController:(UIViewController *)controller isSelectedModel:(id)model {
     return [self isSelectedModel:model];
 }
 
-- (void)pickContactsViewController:(DXPickContactsViewController *)controller didSelectModel:(id)model {
+- (void)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model {
     
     [self selectModel:model];
+    if (controller == self.pickContactsViewController) {
+        [self.searchResultViewController didSelectModel:model];
+    } else {
+        [self.pickContactsViewController didSelectModel:model];
+    }
     [self hideKeyBoard];
 }
 
-- (void)pickContactsViewController:(DXPickContactsViewController *)controller didDeSelectModel:(id)model {
+- (void)pickContactsViewController:(UIViewController *)controller didDeSelectModel:(id)model {
+    
     [self deSelectModel:model];
+    if (controller == self.pickContactsViewController) {
+        [self.searchResultViewController deSelectModel:model];
+    } else {
+        [self.pickContactsViewController deSelectModel:model];
+    }
     [self hideKeyBoard];
 }
 
@@ -296,7 +303,12 @@
 #pragma mark - DXShowPickedViewControllerDelegate
 
 - (void)showPickedViewController:(DXShowPickedViewController *)controller didSelectModel:(id)model {
-    [self.pickContactsViewController scrollToContactModel:model];
+    
+    if (self.searchResultViewController.view.window) {
+        [self.searchResultViewController scrollToContactModel:model];
+    } else {
+        [self.pickContactsViewController scrollToContactModel:model];
+    }
 }
 
 @end

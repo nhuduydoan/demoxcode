@@ -43,6 +43,12 @@
     self.tableView.editing = YES;
     self.tableView.rowHeight = 64;
     self.tableView.tableFooterView = [UIView new];
+    if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
+        [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 100, 0, 0)];
+    }
+    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) {
+        [self.tableView setLayoutMargins:UIEdgeInsetsZero];
+    }
 }
 
 - (void)setUpSectionedTableViewModelWithData:(NSArray *)data {

@@ -28,8 +28,8 @@
 - (id)init {
     self = [super init];
     if (self) {
-        [self setupCollectionViewModel];
         [self setupCollectionView];
+        [self setupCollectionViewModel];
     }
     return self;
 }
@@ -48,14 +48,18 @@
 
 - (void)setupCollectionViewModel {
     
-    self.actions = [[NICollectionViewActions alloc] initWithTarget:self];
     self.data = [NSMutableArray new];
     NSMutableArray *tableViewData = [NSMutableArray new];
+    self.collectionViewModel = [[NIMutableCollectionViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICollectionViewCellFactory class]];
+    self.actions = [[NICollectionViewActions alloc] initWithTarget:self];
+    self.collectionView.dataSource = self.collectionViewModel;
+    [self.collectionView reloadData];
+}
+
+- (void)updateActionsWithInsertedData:(NSArray *)insertedData {
+    
     weakify(self);
-    for (id model in self.data) {
-        DXShowPickedCollectionViewCellObject *obj = [[DXShowPickedCollectionViewCellObject alloc] initWithModel:model];
-        [tableViewData addObject:obj];
-        
+    for (id obj in insertedData) {
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             id model = [object userInfo];
             if ([self_weak_.delegate respondsToSelector:@selector(showPickedViewController:didSelectModel:)]) {
@@ -64,7 +68,6 @@
             return NO;
         }];
     }
-    self.collectionViewModel = [[NIMutableCollectionViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICollectionViewCellFactory class]];
 }
 
 - (void)setupCollectionView {
@@ -77,12 +80,10 @@
     [self.collectionView setBackgroundColor:[UIColor clearColor]];
     [self.view addSubview:self.collectionView];
     
-    self.collectionView.dataSource = self.collectionViewModel;
     self.collectionView.delegate = self;
     self.collectionView.showsVerticalScrollIndicator = NO;
     self.collectionView.showsHorizontalScrollIndicator = NO;
     self.collectionView.contentInset = UIEdgeInsetsMake(0, 8, 0, 8);
-    [self.collectionView reloadData];
 }
 
 #pragma mark - Public
@@ -105,6 +106,7 @@
     DXShowPickedCollectionViewCellObject *obj = [[DXShowPickedCollectionViewCellObject alloc] initWithModel:model];
     NSArray *indexPaths = [self.collectionViewModel addObject:obj];
     [self.collectionView insertItemsAtIndexPaths:indexPaths];
+    [self updateActionsWithInsertedData:@[obj]];
 }
 
 - (void)removePickedModel:(id)model {
@@ -125,12 +127,7 @@
 #pragma mark - UICollectionView Delegate
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    
-    id model = [self.data objectAtIndex:indexPath.row];
-    [collectionView deselectItemAtIndexPath:indexPath animated:YES];
-    if ([self.delegate respondsToSelector:@selector(showPickedViewController:didSelectModel:)]) {
-        [self.delegate showPickedViewController:self didSelectModel:model];
-    }
+    [self.actions collectionView:collectionView didSelectItemAtIndexPath:indexPath];
 }
 
 @end
