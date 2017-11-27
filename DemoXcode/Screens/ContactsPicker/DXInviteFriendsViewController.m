@@ -18,6 +18,9 @@
 @property (strong, nonatomic) UIView *headerView;
 @property (strong, nonatomic) UIView *contentView;
 
+@property (strong, nonatomic) UIBarButtonItem *closeBarButtonItem;
+@property (strong, nonatomic) UIBarButtonItem *inviteBarButtonItem;
+
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) DXShowPickedViewController *showPickedViewController;
 @property (strong, nonatomic) DXPickContactsViewController *pickContactsViewController;
@@ -51,8 +54,12 @@
     
     self.title = @"Invite Friends";
     self.navigationController.navigationBar.translucent = NO;
-    UIBarButtonItem *closeBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(touchUpCloseBarButtonItem)];
-    self.navigationItem.leftBarButtonItem = closeBarButtonItem;
+    self.closeBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(touchUpCloseBarButtonItem)];
+    self.navigationItem.leftBarButtonItem = self.closeBarButtonItem;
+    
+    self.inviteBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Invite" style:UIBarButtonItemStyleDone target:self action:@selector(touchUpInviteButton)];
+    self.navigationItem.rightBarButtonItem = self.inviteBarButtonItem;
+    [self.inviteBarButtonItem setEnabled:NO];
 }
 
 - (void)setupHeaderView {
@@ -208,6 +215,7 @@
     [self.searchResultViewController didSelectModel:model];
     if (self.showPickedViewController.pickedModels.count == 1) {
         [self displayShowPickedViewController:YES];
+        [self.inviteBarButtonItem setEnabled:YES];
     }
 }
 
@@ -218,6 +226,7 @@
     [self.searchResultViewController deSelectModel:model];
     if (self.showPickedViewController.pickedModels.count == 0) {
         [self displayShowPickedViewController:NO];
+        [self.inviteBarButtonItem setEnabled:NO];
     }
 }
 
@@ -231,7 +240,30 @@
 #pragma mark - Action
 
 - (void)touchUpCloseBarButtonItem {
+    
+    if ([self.searchBar isFirstResponder]) {
+        [self.searchBar resignFirstResponder];
+    }
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)touchUpInviteButton {
+    
+    if ([self.searchBar isFirstResponder]) {
+        [self.searchBar resignFirstResponder];
+    }
+    
+    NSArray *selectedFriends = [self.showPickedViewController pickedModels];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Your selected friends" message:@"" preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    for (DXContactModel *contact in selectedFriends) {
+        UIAlertAction *action = [UIAlertAction actionWithTitle:contact.fullName style:UIAlertActionStyleDefault handler:nil];
+        [alertController addAction:action];
+    }
+    
+    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDestructive handler:nil];
+    [alertController addAction:closeAction];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 #pragma mark - UISearchBar Delegate

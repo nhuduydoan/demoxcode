@@ -99,11 +99,11 @@
 
 - (void)didSelectModel:(id)model {
     
-    if ([self cellObjectForModel:model] != nil) {
+    NICellObject *cellObject = [self cellObjectForModel:model];
+    if (cellObject == nil) {
         return;
     }
     
-    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
     NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:cellObject];
     if (indexPath != nil) {
         [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
@@ -186,7 +186,14 @@
 #pragma mark - NITableViewModelDelegate
 
 - (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel cellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withObject:(id)object {
-    return [NICellFactory tableViewModel:tableViewModel cellForTableView:tableView atIndexPath:indexPath withObject:object];
+    UITableViewCell *cell = [NICellFactory tableViewModel:tableViewModel cellForTableView:tableView atIndexPath:indexPath withObject:object];
+    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
+        BOOL isSelected = [self.delegate pickContactsViewController:self isSelectedModel:[object userInfo]];
+        if (isSelected) {
+            [tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
+        }
+    }
+    return cell;
 }
 
 #pragma mark - NIMutableTableViewModelDelegate
@@ -199,8 +206,9 @@
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
     NICellObject *cellObject = [self.data objectAtIndex:indexPath.row];
+    id model = cellObject.userInfo;
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
-        [self.delegate pickContactsViewController:self didDeSelectModel:cellObject.userInfo];
+        [self.delegate pickContactsViewController:self didDeSelectModel:model];
     }
 }
 
