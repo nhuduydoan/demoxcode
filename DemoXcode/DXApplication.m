@@ -7,6 +7,7 @@
 //
 
 #import "DXApplication.h"
+#import "DXContactModel.h"
 
 #define kMakeColor(r,g,b,a) [UIColor colorWithRed:r/255.f green:g/255.f blue:b/255.f alpha:a]
 
@@ -60,53 +61,6 @@
     self.avatarBGColors = colorsArr.copy;
 }
 
-- (UIImage *)avatarImageFromOriginalImage:(UIImage *)image {
-    
-    CGFloat width, height;
-    if (image.size.width > image.size.height) {
-        height = 100;
-        width = image.size.width/image.size.height * 100;
-    } else {
-        width = 100;
-        height = image.size.width/image.size.height * 100;
-    }
-    
-    if (image.imageOrientation == UIImageOrientationLeft || image.imageOrientation == UIImageOrientationRight) {
-        CGFloat x = width;
-        width = height;
-        height = x;
-    }
-    
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, height), YES, 0.0);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    UIGraphicsPushContext(context);
-    [image drawInRect:CGRectMake(0, 0, width, height)];
-    UIGraphicsPopContext();
-    UIImage *avartar = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return avartar;
-}
-
--(UIImage *)avatarImageFromFullName:(NSString *)fulleName {
-    
-    int randColor = rand() % 8;
-    UIColor *backgroundColor = self.avatarBGColors[randColor];
-    UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
-    textLabel.backgroundColor = backgroundColor;
-    textLabel.textAlignment = NSTextAlignmentCenter;
-    textLabel.font = [UIFont systemFontOfSize:44 weight:UIFontWeightRegular];
-    textLabel.textColor = [UIColor whiteColor];
-    NSString *avatarString = [self avatarStringFromFullName:fulleName];
-    textLabel.text = avatarString;
-    
-    UIGraphicsBeginImageContext(textLabel.bounds.size);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    [textLabel.layer renderInContext:context];
-    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return img;
-}
-
 - (NSString *)avatarStringFromFullName:(NSString *)fullName {
     
     NSString *avatarStr = @"";
@@ -151,6 +105,149 @@
     }
     
     return avatarStr;
+}
+
+#pragma mark - Public
+
+-(UIImage *)avatarImageFromFullName:(NSString *)fulleName {
+    
+    NSString *avatarString = [self avatarStringFromFullName:fulleName];
+    NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:44 weight:UIFontWeightRegular],
+                                     NSForegroundColorAttributeName:[UIColor whiteColor]};
+    CGSize size = [avatarString sizeWithAttributes:textAttributes];
+    int randColor = rand() % 8;
+    UIColor *backgroundColor = self.avatarBGColors[randColor];
+    CGRect rect = CGRectMake(0, 0, 100, 100);
+    UIBezierPath* textPath = [UIBezierPath bezierPathWithRect:rect];
+    
+    UIGraphicsBeginImageContextWithOptions(rect.size,NO,0.0);
+    //Fill background color
+    [backgroundColor setFill];
+    [textPath fill];
+    //Draw Srting
+    [avatarString drawAtPoint:CGPointMake(rect.size.width/2 - size.width/2, rect.size.height/2 - size.height/2) withAttributes:textAttributes];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
+}
+
+- (UIImage *)avatarImageFromOriginalImage:(UIImage *)image {
+    
+    CGFloat width, height;
+    if (image.size.width > image.size.height) {
+        height = 100;
+        width = image.size.width/image.size.height * 100;
+    } else {
+        width = 100;
+        height = image.size.width/image.size.height * 100;
+    }
+    
+    if (image.imageOrientation == UIImageOrientationLeft || image.imageOrientation == UIImageOrientationRight) {
+        CGFloat x = width;
+        width = height;
+        height = x;
+    }
+    
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, height), YES, 0.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    UIGraphicsPushContext(context);
+    [image drawInRect:CGRectMake(0, 0, width, height)];
+    UIGraphicsPopContext();
+    UIImage *avartar = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return avartar;
+}
+
+- (UIImage *)imageFromString:(NSString *)string {
+    
+    NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:17]};
+    CGSize size = [string sizeWithAttributes:textAttributes];
+    UIGraphicsBeginImageContextWithOptions(size,NO,0.0);
+    [string drawAtPoint:CGPointMake(0, 0) withAttributes:textAttributes];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
+- (NSArray *)arrangeSectionedWithData:(NSArray *)data {
+    
+    if (data.count == 0) {
+        return data;
+    }
+    
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    
+    NSMutableArray *alphabetArray = [NSMutableArray new];
+    NSMutableArray *sharpArray = [NSMutableArray new];
+    NSInteger count = sortedArray.count;
+    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+    NSString *groupKey = @"";
+    
+    for (NSInteger i = 0; i < count; i ++) {
+        DXContactModel *contact = sortedArray[i];
+        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if (name.length == 0) {
+            [sharpArray addObject:contact];
+        } else {
+            unichar firstChar = [name characterAtIndex:0];
+            if (![letters characterIsMember:firstChar]) {
+                // If first letter is not alphabet
+                [sharpArray addObject:contact];
+            } else {
+                NSString *firstKey = [name substringToIndex:1].uppercaseString;
+                if (![firstKey isEqualToString:groupKey]) {
+                    // If First Key is new key
+                    groupKey = firstKey;
+                    [alphabetArray addObject:groupKey];
+                }
+                [alphabetArray addObject:contact];
+            }
+        }
+    }
+    
+    if (sharpArray.count > 0) {
+        [sharpArray insertObject:@"#" atIndex:0];
+        [sharpArray addObjectsFromArray:alphabetArray];
+    }
+    
+    return sharpArray;
+}
+
+- (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
+    
+    if (data.count == 0) {
+        return [NSMutableArray new];
+    }
+    
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    
+    NSMutableArray *alphabetArray = [NSMutableArray new];
+    NSMutableArray *sharpArray = [NSMutableArray new];
+    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+    
+    for (DXContactModel *contact in sortedArray) {
+        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        if (name.length == 0) {
+            [sharpArray addObject:contact];
+        } else {
+            unichar firstChar = [name characterAtIndex:0];
+            if ([letters characterIsMember:firstChar]) {
+                // If first letter is alphabet
+                [alphabetArray addObject:contact];
+            } else {
+                // If first letter is not alphabet
+                [sharpArray addObject:contact];
+            }
+        }
+    }
+    
+    if (alphabetArray.count > 0) {
+        [sharpArray addObjectsFromArray:alphabetArray];
+    }
+    return sharpArray;
 }
 
 @end

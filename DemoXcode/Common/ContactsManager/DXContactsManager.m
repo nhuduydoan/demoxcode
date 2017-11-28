@@ -228,7 +228,6 @@
                 }
             }];
         }
-        
         if (completeBlock) {
             [self mainThread:^{
                 completeBlock(contactsArr);

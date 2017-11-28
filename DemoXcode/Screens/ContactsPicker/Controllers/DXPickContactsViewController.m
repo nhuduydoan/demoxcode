@@ -55,7 +55,7 @@
 
 - (void)setUpSectionedTableViewModelWithData:(NSArray *)data {
     
-    NSArray *arrangedData = [self arrangeSectionedWithData:data];
+    NSArray *arrangedData = [sApplication arrangeSectionedWithData:data];
     NSMutableArray *tableViewData = [NSMutableArray new];
     for (id model in arrangedData) {
         if (![model isKindOfClass:[NSString class]]) {
@@ -75,18 +75,7 @@
     self.tableView.dataSource = self.tableviewModel;
     [self setUpTableViewActionsWithData:tableViewData];
     [self.tableView reloadData];
-    
-    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
-        for (id obj  in tableViewData) {
-            if (![obj isKindOfClass:[NICellObject class]]) {
-                continue;
-            }
-            if ([self.delegate pickContactsViewController:self isSelectedModel:[obj userInfo]]) {
-                NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:obj];
-                [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
-            }
-        }
-    }
+    [self checkSelectedWithData:tableViewData];
 }
 
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
@@ -116,7 +105,21 @@
 - (void)reloadWithData:(NSArray *)data {
     
     [self setUpSectionedTableViewModelWithData:data];
-    [self.tableView reloadData];
+}
+
+- (void)checkSelectedWithData:(NSArray *)data {
+    
+    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
+        for (id obj  in data) {
+            if (![obj isKindOfClass:[NICellObject class]]) {
+                continue;
+            }
+            if ([self.delegate pickContactsViewController:self isSelectedModel:[obj userInfo]]) {
+                NSIndexPath *indexPath = [self.tableviewModel indexPathForObject:obj];
+                [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
+            }
+        }
+    }
 }
 
 - (void)didSelectModel:(id)model {
@@ -170,81 +173,6 @@
     return nil;
 }
 
-- (NSArray *)arrangeSectionedWithData:(NSArray *)data {
-    
-    if (data.count == 0) {
-        return [NSArray new];
-    }
-    
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
-    
-    NSMutableArray *alphabetArray = [NSMutableArray new];
-    NSMutableArray *sharpArray = [NSMutableArray new];
-    NSInteger count = sortedArray.count;
-    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-    NSString *groupKey = @"";
-    
-    for (NSInteger i = 0; i < count; i ++) {
-        DXContactModel *contact = sortedArray[i];
-        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (name.length == 0) {
-            [sharpArray addObject:contact];
-        } else {
-            unichar firstChar = [name characterAtIndex:0];
-            if (![letters characterIsMember:firstChar]) {
-                // If first letter is not alphabet
-                [sharpArray addObject:contact];
-            } else {
-                NSString *firstKey = [name substringToIndex:1].uppercaseString;
-                if (![firstKey isEqualToString:groupKey]) {
-                    // If First Key is new key
-                    groupKey = firstKey;
-                    [alphabetArray addObject:groupKey];
-                }
-                [alphabetArray addObject:contact];
-            }
-        }
-    }
-    
-    if (sharpArray.count > 0) {
-        [sharpArray insertObject:@"#" atIndex:0];
-        [sharpArray addObjectsFromArray:alphabetArray];
-    }
-    
-    return sharpArray;
-}
-
-- (id)objectAtIndexPath:(NSIndexPath *)indexPath {
-    
-    NSInteger section = indexPath.section + 1;
-    for (id obj in self.data) {
-        if ([obj isKindOfClass:[NSString class]]) {
-            section -= 1;
-        }
-        if (section == 0) {
-            NSInteger index = [self.data indexOfObject:obj] + 1 + indexPath.row;
-            return self.data[index];
-        }
-    }
-    return nil;
-}
-
-- (NSString *)titleForSection:(NSInteger)section {
-    
-    NSInteger index = 0;
-    for (id obj in self.data) {
-        if ([obj isKindOfClass:[NSString class]]) {
-            if (index == section) {
-                return obj;
-            } else {
-                index += 1;
-            }
-        }
-    }
-    return nil;
-}
-
 #pragma mark - NITableViewModelDelegate
 
 - (UITableViewCell *)tableViewModel:(NITableViewModel *)tableViewModel cellForTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withObject:(id)object {
@@ -253,7 +181,7 @@
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     
-    NSString *sectionTitle = [self titleForSection:section];
+    NSString *sectionTitle = [self.tableviewModel tableView:tableView titleForHeaderInSection:section];
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 10)];
     view.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9];
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, 20, 10)];
@@ -273,8 +201,9 @@
 #pragma mark - UITableView Delegate
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NICellObject *cellObject = [self objectAtIndexPath:indexPath];
-    id model = cellObject.userInfo;
+    
+    id cellObject = [self.tableviewModel objectAtIndexPath:indexPath];
+    id model = [cellObject userInfo];
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
         [self.delegate pickContactsViewController:self didDeSelectModel:model];
     }

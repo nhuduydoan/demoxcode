@@ -57,15 +57,17 @@
 
 - (void)setUpNonSectionedTableViewModelWithData:(NSArray *)data {
     
-    self.data = [self tableViewDataFromData:data];
-    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:self.data delegate:self];
+    NSArray *tableViewData = [self tableViewDataFromData:data];
+    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexNone
                                  showsSearch:NO
                                 showsSummary:NO];
     
-    [self setUpTableViewActionsWithData:self.data];
+    self.data = tableViewData;
+    [self setUpTableViewActionsWithData:tableViewData];
     self.tableView.dataSource = self.tableviewModel;
     [self.tableView reloadData];
+    [self checkSelectedWithData:tableViewData];
 }
 
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
@@ -93,10 +95,12 @@
 - (void)reloadWithData:(NSArray *)data {
     
     [self setUpNonSectionedTableViewModelWithData:data];
-    [self.tableView reloadData];
+}
+
+- (void)checkSelectedWithData:(NSArray *)data {
     
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
-        for (id obj  in self.data) {
+        for (id obj  in data) {
             if (![obj isKindOfClass:[NICellObject class]]) {
                 continue;
             }
@@ -161,7 +165,7 @@
 
 - (NSArray *)tableViewDataFromData:(NSArray *)data {
     
-    NSArray *arrangedData = [self arrangeNonSectionedWithData:data];
+    NSArray *arrangedData = [sApplication arrangeNonSectionedWithData:data];
     NSMutableArray *tableViewData = [NSMutableArray new];
     for (id model in arrangedData) {
         if (![model isKindOfClass:[NSString class]]) {
@@ -172,41 +176,6 @@
         }
     }
     return tableViewData;
-}
-
-- (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
-    
-    if (data.count == 0) {
-        return [NSMutableArray new];
-    }
-    
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
-    
-    NSMutableArray *alphabetArray = [NSMutableArray new];
-    NSMutableArray *sharpArray = [NSMutableArray new];
-    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-    
-    for (DXContactModel *contact in sortedArray) {
-        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (name.length == 0) {
-            [sharpArray addObject:contact];
-        } else {
-            unichar firstChar = [name characterAtIndex:0];
-            if ([letters characterIsMember:firstChar]) {
-                // If first letter is alphabet
-                [alphabetArray addObject:contact];
-            } else {
-                // If first letter is not alphabet
-                [sharpArray addObject:contact];
-            }
-        }
-    }
-    
-    if (alphabetArray.count > 0) {
-        [sharpArray addObjectsFromArray:alphabetArray];
-    }
-    return sharpArray;
 }
 
 #pragma mark - NITableViewModelDelegate
@@ -225,7 +194,7 @@
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    NICellObject *cellObject = [self.data objectAtIndex:indexPath.row];
+    NICellObject *cellObject = [self.tableviewModel objectAtIndexPath:indexPath];
     id model = cellObject.userInfo;
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
         [self.delegate pickContactsViewController:self didDeSelectModel:model];

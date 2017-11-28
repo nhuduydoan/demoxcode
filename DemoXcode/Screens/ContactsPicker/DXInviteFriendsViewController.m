@@ -20,7 +20,7 @@
 
 @property (strong, nonatomic) UIBarButtonItem *closeBarButtonItem;
 @property (strong, nonatomic) UIBarButtonItem *inviteBarButtonItem;
-@property (strong, nonatomic) UILabel *subTitlelabel;
+@property (strong, nonatomic) UIImageView *subTitleView;
 
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) DXShowPickedViewController *showPickedViewController;
@@ -65,39 +65,47 @@
 
 - (void)setupTitleView {
     
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
-    UILabel *mainLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 8, 320, 18)];
-    UILabel *subTitlelabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 26, 320, 14)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 414, 44)];
+    UILabel *mainLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 8, 414, 18)];
     mainLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    subTitlelabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    
     mainLabel.font = [UIFont systemFontOfSize:17];
     mainLabel.textAlignment = NSTextAlignmentCenter;
-    subTitlelabel.textAlignment = NSTextAlignmentCenter;
-    subTitlelabel.font = [UIFont systemFontOfSize:10];
     mainLabel.text = @"Chọn bạn";
-    subTitlelabel.text = @"0/5";
+    
+    NSString *subTitle = @"0/5";
+    UIImage *subImage = [sApplication imageFromString:subTitle];
+    CGFloat width = subImage.size.width * 0.6;
+    CGFloat height = subImage.size.height * 0.6;
+    UIImageView *subTitleView = [[UIImageView alloc] initWithImage:subImage];
+    subTitleView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin |UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;
+    CGRect subViewFrame = CGRectMake(207 - width/2, 34 - height/2, width, height);
+    subTitleView.frame = subViewFrame;
     
     [view addSubview:mainLabel];
-    [view addSubview:subTitlelabel];
+    [view addSubview:subTitleView];
     self.navigationItem.titleView = view;
-    self.subTitlelabel = subTitlelabel;
+    self.subTitleView = subTitleView;
 }
 
-- (void)updateControllerTitle {
+- (void)updateTitleForController {
     
-    NSInteger selectedContact = self.showPickedViewController.pickedModels.count;
-    NSString *subTitle = [NSString stringWithFormat:@"%zd/5", selectedContact];
-    self.subTitlelabel.text = subTitle;
+    NSString *subTitle = [NSString stringWithFormat:@"%zd/5", self.showPickedViewController.pickedModels.count];
+    UIImage *subTitleImage =  [sApplication imageFromString:subTitle];
+    CGRect rect = self.navigationItem.titleView.bounds;
+    CGFloat width = subTitleImage.size.width * 0.6;
+    CGFloat height = subTitleImage.size.height * 0.6;
+    CGRect subViewFrame = CGRectMake(rect.size.width/2 - width/2, 34 - height/2, width, height);
+    CGRect hightLightFrame = CGRectMake(rect.size.width/2 - subTitleImage.size.width/2, 34 - subTitleImage.size.height/2, subTitleImage.size.width, subTitleImage.size.height);
     
     [UIView animateWithDuration:0.1 delay:0.2 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        self.subTitlelabel.font = [UIFont systemFontOfSize:14];
+        self.subTitleView.frame = hightLightFrame;
     } completion:^(BOOL finished) {
-        self.subTitlelabel.font = [UIFont systemFontOfSize:14];
-        [UIView animateWithDuration:0.1 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.subTitlelabel.font = [UIFont systemFontOfSize:10];
+        self.subTitleView.frame = hightLightFrame;
+        self.subTitleView.image = subTitleImage;
+        [UIView animateWithDuration:0.1 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.subTitleView.frame = subViewFrame;
         } completion:^(BOOL finished) {
-            self.subTitlelabel.font = [UIFont systemFontOfSize:10];
+            self.subTitleView.frame = subViewFrame;
         }];
     }];
 }
@@ -255,7 +263,7 @@
         [self displayShowPickedViewController:YES];
         [self.inviteBarButtonItem setEnabled:YES];
     }
-    [self updateControllerTitle];
+    [self updateTitleForController];
 }
 
 - (void)deSelectModel:(id)model {
@@ -265,7 +273,7 @@
         [self displayShowPickedViewController:NO];
         [self.inviteBarButtonItem setEnabled:NO];
     }
-    [self updateControllerTitle];
+    [self updateTitleForController];
 }
 
 - (void)hideKeyBoard {
@@ -294,7 +302,7 @@
         UIAlertAction *action = [UIAlertAction actionWithTitle:contact.fullName style:UIAlertActionStyleDefault handler:nil];
         [alertController addAction:action];
     }
-    
+
     UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDestructive handler:nil];
     [alertController addAction:closeAction];
     [self presentViewController:alertController animated:YES completion:nil];

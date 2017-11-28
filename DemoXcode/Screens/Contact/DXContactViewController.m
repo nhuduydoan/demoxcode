@@ -174,41 +174,6 @@
     }];
 }
 
-- (NSArray *)arrangeDataWithData:(NSArray *)data {
-    
-    if (data.count == 0) {
-        return [NSMutableArray new];
-    }
-    
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
-    
-    NSMutableArray *alphabetArray = [NSMutableArray new];
-    NSMutableArray *sharpArray = [NSMutableArray new];
-    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
-    
-    for (DXContactModel *contact in sortedArray) {
-        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (name.length == 0) {
-            [sharpArray addObject:contact];
-        } else {
-            unichar firstChar = [name characterAtIndex:0];
-            if ([letters characterIsMember:firstChar]) {
-                // If first letter is alphabet
-                [alphabetArray addObject:contact];
-            } else {
-                // If first letter is not alphabet
-                [sharpArray addObject:contact];
-            }
-        }
-    }
-    
-    if (alphabetArray.count > 0) {
-        [sharpArray addObjectsFromArray:alphabetArray];
-    }
-    return sharpArray;
-}
-
 - (void)searchWithKeyword:(NSString *)keyword {
     
     NSArray *resArr;
@@ -221,7 +186,7 @@
          resArr = [self.originalData filteredArrayUsingPredicate:compoundPredicate];
     }
     
-    self.displayData = [self arrangeDataWithData:resArr];
+    self.displayData = [sApplication arrangeNonSectionedWithData:resArr];;
     [self.tableView reloadData];
 }
 
