@@ -42,7 +42,7 @@
     [self setupNavigationBarItems];
     [self setupHeaderView];
     [self setUpContentView];
-    [self getAllContactsData];
+    [self reloadData];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -226,15 +226,16 @@
 
 #pragma mark - Private
 
-- (void)getAllContactsData {
+- (void)reloadData {
     
     [self.originalData removeAllObjects];
     weakify(self);
     [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self_weak_.originalData addObjectsFromArray:contacts.copy];
-            [self_weak_.pickContactsViewController reloadWithData:self_weak_.originalData];
+            [self_weak_.originalData addObjectsFromArray:contacts];
+            [self_weak_.pickContactsViewController insertNewData:contacts];
         });
+        
     } isMultiCalback:YES];
 }
 

@@ -30,8 +30,8 @@ This function get get all contacts from phone and return in competition handler 
  
  @param fromIndex : index which data will load more from
  @param count : max count of data will be return in callback handler
- @param completionHandler : block for callback. If data is last piece of all contacts data, canLoadMore variable will be set YES, that mean do not have any data for loadmore.
+ @param completionHandler : block for callback. If data is last piece of all contacts data, isFinished variable will be set YES, that mean do not have any data for loadmore.
  */
-- (void)loadMoreContactsFromIndex:(NSUInteger)fromIndex count:(NSUInteger)count withCompletionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL canLoadMore))completionHandler;
+- (void)loadMoreContactsFromIndex:(NSUInteger)fromIndex count:(NSUInteger)count withCompletionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler;
 
 @end

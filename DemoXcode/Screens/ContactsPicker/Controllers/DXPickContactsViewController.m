@@ -18,7 +18,8 @@
 @property (nonatomic, retain) NIMutableTableViewModel *tableviewModel;
 @property (nonatomic, retain) NITableViewActions *actions;
 
-@property (strong, nonatomic) NSArray *data;
+@property (strong, nonatomic) NSMutableArray *tableviewData;
+@property (strong, nonatomic) NSMutableArray *originalData;
 
 @end
 
@@ -57,7 +58,7 @@
     
     NSArray *arrangedData = [sApplication arrangeSectionedWithData:data];
     NSMutableArray *tableViewData = [self tableviewDataFromData:arrangedData];
-    self.data = tableViewData;
+    self.tableviewData = tableViewData;
     self.tableviewModel = [[NIMutableTableViewModel alloc] initWithSectionedArray:tableViewData delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexDynamic
                                  showsSearch:(tableViewData.count > 0)
@@ -85,6 +86,7 @@
 
 - (void)reloadWithData:(NSArray *)data {
     
+    self.originalData = data.mutableCopy;
     [self setUpSectionedTableViewModelWithData:data];
 }
 
@@ -94,8 +96,52 @@
         return;
     }
     
-    NSArray *sectionsArr = [sApplication sectionsArrayWhenArrangeSectionedWithData:data];
-    [self.tableView reloadData];
+    [self.originalData addObjectsFromArray:data];
+    NSArray *sectionsArr = [sApplication sectionsArraySectionedWithData:data];
+    NSArray *arrangedData = [sApplication arrangeSectionedWithData:self.originalData];
+    
+    for (NSArray *array in sectionsArr) {
+        
+        NSString *sectionTitle = array.firstObject;
+        BOOL exist = [self indexOfSection:sectionTitle inData:self.tableviewData] != NSNotFound;
+        NSInteger section = [self indexOfSection:sectionTitle inData:arrangedData];
+        if (!exist) {
+            if (section != NSNotFound) {
+                [self.tableviewModel insertSectionWithTitle:sectionTitle atIndex:section];
+                [self.tableView insertSections:[NSIndexSet indexSetWithIndex:section] withRowAnimation:UITableViewRowAnimationFade];
+            }
+        }
+        NSInteger sectionPos = [arrangedData indexOfObject:sectionTitle];
+        if (section != NSNotFound) {
+            NSMutableArray *indexPaths = [NSMutableArray new];
+            for (NSInteger i = 1; i < array.count; i++) {
+                id model = array[i];
+                NSInteger index = [arrangedData indexOfObject:model];
+                NSInteger rowIdnex = index - sectionPos - 1;
+                NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
+                NSArray *paths = [self.tableviewModel insertObject:cellObject atRow:rowIdnex inSection:section];
+                [indexPaths addObjectsFromArray:paths];
+            }
+            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationBottom];
+        }
+        
+    }
+    NSLog(@"");
+    self.tableviewData = [self tableviewDataFromData:arrangedData];
+}
+
+- (NSInteger)indexOfSection:(NSString *)section inData:(NSArray *)data {
+    
+    NSInteger index = 0;
+    for (id obj in data) {
+        if ([obj isKindOfClass:[NSString class]]) {
+            if ([obj isEqualToString:section]) {
+                return index;
+            }
+            index += 1;
+        }
+    }
+    return NSNotFound;
 }
 
 - (void)checkSelectedWithData:(NSArray *)data {
@@ -170,7 +216,7 @@
 
 - (id)cellObjectForModel:(id)model {
     
-    for (NICellObject *object in self.data) {
+    for (NICellObject *object in self.tableviewData) {
         if ([object isKindOfClass:[NICellObject class]] && [object.userInfo isEqual:model]) {
             return object;
         }

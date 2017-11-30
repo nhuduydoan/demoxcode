@@ -8,12 +8,15 @@
 
 #import "DXApplication.h"
 #import "DXContactModel.h"
+#import "NIinMemoryCache.h"
+#import <Contacts/Contacts.h>
 
 #define kMakeColor(r,g,b,a) [UIColor colorWithRed:r/255.f green:g/255.f blue:b/255.f alpha:a]
 
 @interface DXApplication ()
 
 @property (strong, nonatomic) NSArray *avatarBGColors;
+@property (strong, nonatomic) NIImageMemoryCache *imagesCache;
 
 @end
 
@@ -35,6 +38,7 @@
     self = [super init];
     if (self) {
         [self setUpAvatarBGColors];
+        _imagesCache = [[NIImageMemoryCache alloc] initWithCapacity:1000];
     }
     return self;
 }
@@ -107,7 +111,7 @@
     return avatarStr;
 }
 
-#pragma mark - Public
+#pragma mark - Contact Avatar
 
 -(UIImage *)avatarImageFromFullName:(NSString *)fulleName {
     
@@ -170,7 +174,9 @@
     return image;
 }
 
-- (NSArray *)sectionsArrayWhenArrangeSectionedWithData:(NSArray *)data {
+#pragma mark - Arrange Data
+
+- (NSArray *)sectionsArraySectionedWithData:(NSArray *)data {
     
     if (data.count == 0) {
         return nil;
@@ -194,6 +200,7 @@
         }
         [section addObject:contact];
     }
+    [sectionsArr addObject:section];
     
     return sectionsArr;
 }
@@ -254,6 +261,111 @@
         [arrangedArray addObject:contact];
     }
     return arrangedArray;
+}
+#pragma mark - Contact Model
+
+- (id)parseContactModelWithCNContact:(CNContact *)contact {
+    
+    NSArray *phones = [self parsePhonesWithCNContact:contact];
+    if (phones.count == 0) {
+        return nil;
+    }
+    
+    NSString *identifier = contact.identifier;
+    NSString *fullName = [self parseNameWithCNContact:contact];
+    NSString *birthDay = [self parseBirthDayWithCNContact:contact];
+    NSArray *addrArr = [self parseAddressWithCNContact:contact];
+    NSArray *emails = [self parseEmailsWithCNContact:contact];
+    UIImage *avartar = [self avatarForCNContact:contact fullName:fullName];
+    
+    DXContactModel *contactModel = [[DXContactModel alloc] initWithIdentifier:identifier fullName:fullName birthDay:birthDay phones:phones emails:emails addressArray:addrArr avatar:avartar];
+    return contactModel;
+}
+
+- (NSString *)parseNameWithCNContact:(CNContact *)contact {
+    
+    NSString *firstName =  contact.givenName;
+    NSString *lastName =  contact.familyName;
+    NSString *fullName;
+    if (lastName == nil) {
+        fullName=[NSString stringWithFormat:@"%@",firstName];
+    } else if (firstName == nil) {
+        fullName = [NSString stringWithFormat:@"%@",lastName];
+    } else {
+        fullName = [NSString stringWithFormat:@"%@ %@",firstName,lastName];
+    }
+    return fullName;
+}
+
+- (NSArray *)parsePhonesWithCNContact:(CNContact *)contact {
+    
+    NSMutableArray *phones = [NSMutableArray new];
+    for (CNLabeledValue *label in contact.phoneNumbers) {
+        NSString *phone = [label.value stringValue];
+        if ([phone length] > 0) {
+            [phones addObject:phone];
+        }
+    }
+    return phones;
+}
+
+- (NSArray *)parseEmailsWithCNContact:(CNContact *)contact {
+    
+    NSMutableArray *emails = [NSMutableArray new];
+    for (CNLabeledValue *label in contact.emailAddresses) {
+        NSString *email = label.value;
+        if ([email length] > 0) {
+            [emails addObject:email];
+        }
+    }
+    return emails;
+}
+
+- (NSString *)parseBirthDayWithCNContact:(CNContact *)contact  {
+    
+    NSDateComponents *birthDayComponent;
+    NSString *birthDayStr;
+    birthDayComponent = contact.birthday;
+    if (birthDayComponent != nil) {
+        birthDayComponent = contact.birthday;
+        NSInteger day = [birthDayComponent day];
+        NSInteger month = [birthDayComponent month];
+        NSInteger year = [birthDayComponent year];
+        birthDayStr = [NSString stringWithFormat:@"%ld/%ld/%ld",(long)day,(long)month,(long)year];
+    }
+    return birthDayStr;
+}
+
+- (NSMutableArray *)parseAddressWithCNContact:(CNContact *)contact {
+    
+    NSMutableArray *addrArr = [NSMutableArray new];
+    CNPostalAddressFormatter *formatter = [[CNPostalAddressFormatter alloc]init];
+    NSArray *addresses = contact.postalAddresses;
+    for (CNLabeledValue *label in addresses) {
+        CNPostalAddress *address = label.value;
+        NSString *addressString = [formatter stringFromPostalAddress:address];
+        if ([addressString length] > 0) {
+            [addrArr addObject:addressString];
+        }
+    }
+    
+    return addrArr;
+}
+
+- (UIImage *)avatarForCNContact:(CNContact *)contact fullName:(NSString *)fullName {
+    
+    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
+    if (img == nil) {
+        UIImage *avartar = [UIImage imageWithData:contact.imageData];
+        if (avartar == nil) {
+            img = [sApplication avatarImageFromFullName:fullName];
+        } else if (avartar.size.width > 200) {
+            img = [sApplication avatarImageFromOriginalImage:avartar];
+        }
+    }
+    
+    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+    return img;
 }
 
 @end

@@ -7,8 +7,6 @@
 //
 
 #import "DXContactModel.h"
-#import <Contacts/Contacts.h>
-#import "NIInMemoryCache.h"
 
 @interface DXContactModel ()
 
@@ -23,8 +21,6 @@
 @end
 
 @implementation DXContactModel
-
-static NIImageMemoryCache *memoryCache;
 
 - (instancetype)initWithIdentifier:(NSString *)identifier fullName:(NSString *)fullName birthDay:(NSString *)birthDay phones:(NSArray *)phones emails:(NSArray *)emails addressArray:(NSArray *)addressArray avatar:(UIImage *)image {
     self = [super init];

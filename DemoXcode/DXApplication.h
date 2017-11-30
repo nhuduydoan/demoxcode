@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "DXContactModel.h"
+@class CNContact;
 
 #define sApplication [DXApplication sharedInstance]
 
@@ -19,8 +21,10 @@
 - (UIImage *)avatarImageFromFullName:(NSString *)fullName;
 - (UIImage *)imageFromString:(NSString *)string;
 
-- (NSArray *)sectionsArrayWhenArrangeSectionedWithData:(NSArray *)data;
+- (NSArray *)sectionsArraySectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeSectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data;
+
+- (id)parseContactModelWithCNContact:(CNContact *)contact;
 
 @end

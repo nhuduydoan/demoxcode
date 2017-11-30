@@ -41,6 +41,8 @@
 		5C27EC461FC576010065E6B6 /* NICellCatalog.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC391FC576000065E6B6 /* NICellCatalog.m */; };
 		5C27EC471FC576010065E6B6 /* NITableViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC3C1FC576000065E6B6 /* NITableViewModel.m */; };
 		5C27EC481FC576010065E6B6 /* NIFormCellCatalog.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC3D1FC576000065E6B6 /* NIFormCellCatalog.m */; };
+		5C47F34B1FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C47F3471FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.m */; };
+		5C47F34C1FD0079F00680C58 /* UIScrollView+SVPullToRefresh.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C47F3481FD0079F00680C58 /* UIScrollView+SVPullToRefresh.m */; };
 		5C576A9D1FC3B17600FFFB09 /* DXContactModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576A9C1FC3B17600FFFB09 /* DXContactModel.m */; };
 		5C576AA31FC3DFDD00FFFB09 /* DXContactsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576AA11FC3DFDD00FFFB09 /* DXContactsManager.m */; };
 		5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C576AAC1FC3E40D00FFFB09 /* DXContactsSearchBar.m */; };
@@ -144,6 +146,11 @@
 		5C27EC3D1FC576000065E6B6 /* NIFormCellCatalog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NIFormCellCatalog.m; sourceTree = "<group>"; };
 		5C27EC3E1FC576010065E6B6 /* NITableViewActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NITableViewActions.h; sourceTree = "<group>"; };
 		5C27EC3F1FC576010065E6B6 /* NIRadioGroupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NIRadioGroupController.h; sourceTree = "<group>"; };
+		5C47F3461FD0079F00680C58 /* SVPullToRefresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPullToRefresh.h; sourceTree = "<group>"; };
+		5C47F3471FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+SVInfiniteScrolling.m"; sourceTree = "<group>"; };
+		5C47F3481FD0079F00680C58 /* UIScrollView+SVPullToRefresh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+SVPullToRefresh.m"; sourceTree = "<group>"; };
+		5C47F3491FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+SVInfiniteScrolling.h"; sourceTree = "<group>"; };
+		5C47F34A1FD0079F00680C58 /* UIScrollView+SVPullToRefresh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+SVPullToRefresh.h"; sourceTree = "<group>"; };
 		5C576A9B1FC3B17600FFFB09 /* DXContactModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXContactModel.h; sourceTree = "<group>"; };
 		5C576A9C1FC3B17600FFFB09 /* DXContactModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXContactModel.m; sourceTree = "<group>"; };
 		5C576AA01FC3DFDD00FFFB09 /* DXContactsManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXContactsManager.h; sourceTree = "<group>"; };
@@ -378,9 +385,22 @@
 			path = ContactsPicker;
 			sourceTree = "<group>";
 		};
+		5C47F3451FD0079F00680C58 /* SVPullToRefresh */ = {
+			isa = PBXGroup;
+			children = (
+				5C47F3461FD0079F00680C58 /* SVPullToRefresh.h */,
+				5C47F3471FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.m */,
+				5C47F3481FD0079F00680C58 /* UIScrollView+SVPullToRefresh.m */,
+				5C47F3491FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.h */,
+				5C47F34A1FD0079F00680C58 /* UIScrollView+SVPullToRefresh.h */,
+			);
+			path = SVPullToRefresh;
+			sourceTree = "<group>";
+		};
 		5C576A9E1FC3DFDD00FFFB09 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				5C47F3451FD0079F00680C58 /* SVPullToRefresh */,
 				5C27EBE61FC575B20065E6B6 /* Nimbus */,
 				5C576A9F1FC3DFDD00FFFB09 /* ContactsManager */,
 			);
@@ -561,6 +581,7 @@
 				5CF46FD91FC8107300409E1A /* DXResultSearchViewController.m in Sources */,
 				5C576AA31FC3DFDD00FFFB09 /* DXContactsManager.m in Sources */,
 				5C27EC431FC576010065E6B6 /* NIRadioGroup.m in Sources */,
+				5C47F34C1FD0079F00680C58 /* UIScrollView+SVPullToRefresh.m in Sources */,
 				5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */,
 				5C27EC181FC575F30065E6B6 /* NIInMemoryCache.m in Sources */,
 				5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */,
@@ -603,6 +624,7 @@
 				5C1D55A81FC6A4130059F452 /* DXInviteFriendsViewController.m in Sources */,
 				5CC179591FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m in Sources */,
 				5C27EC191FC575F30065E6B6 /* NIPaths.m in Sources */,
+				5C47F34B1FD0079F00680C58 /* UIScrollView+SVInfiniteScrolling.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

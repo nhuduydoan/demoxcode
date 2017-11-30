@@ -11,6 +11,7 @@
 #import "DXContactModel.h"
 #import "DXContactTableViewCell.h"
 #import "DXContactsDetailViewController.h"
+#import "SVPullToRefresh.h"
 
 #define ContactTableViewCell @"ContactTableViewCell"
 
@@ -40,7 +41,6 @@
     [self setUpNavigationItems];
     [self setUpNoResultLabel];
     [self setUpTableView];
-    [self getAllContacts];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -85,7 +85,15 @@
     self.tableView.separatorColor = [UIColor colorWithWhite:0.85 alpha:1];
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];
-    [self.tableView reloadData];
+    weakify(self);
+    [self.tableView addPullToRefreshWithActionHandler:^{
+        [self_weak_ reloadData];
+    }];
+    [self_weak_ reloadData];
+    
+    [self.tableView addInfiniteScrollingWithActionHandler:^{
+        [self_weak_ loadMoreData];
+    }];
 }
 
 - (void)setUpNoResultLabel {
@@ -162,12 +170,21 @@
 
 #pragma mark  - Private
 
-- (void)getAllContacts {
+- (void)reloadData {
     
+    [self displayNoResultlabel:NO];
+    [self.searchBar setText:nil];
+    [self.originalData removeAllObjects];
+    self.displayData = [NSArray new];
+    [self.tableView reloadData];
     weakify(self);
-    [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+    [sContactMngr loadMoreContactsFromIndex:0 count:50 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self_weak_ insertData:contacts];
+            if (contacts.count) {
+                [self_weak_.originalData addObjectsFromArray:contacts];
+                [self_weak_ filterWithKeyword:self.searchString];
+                [self_weak_.tableView reloadData];
+            }
             if (self_weak_.originalData.count == 0) {
                 [self_weak_ displayNoResultlabel:YES];
             } else {
@@ -178,8 +195,22 @@
             } else {
                 self_weak_.noResultLabel.text = @"No result";
             }
+            [self.tableView.pullToRefreshView stopAnimating];
+            [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
         });
-    } isMultiCalback:YES];
+    }];
+}
+
+-  (void)loadMoreData {
+    
+    weakify(self);
+    [sContactMngr loadMoreContactsFromIndex:self.originalData.count count:20 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self_weak_ insertData:contacts];
+            [self_weak_.tableView.infiniteScrollingView stopAnimating];
+            [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
+        });
+    }];
 }
 
 - (void)insertData:(NSArray *)data {
@@ -217,7 +248,7 @@
          resArr = [self.originalData filteredArrayUsingPredicate:compoundPredicate];
     }
     
-    self.displayData = [sApplication arrangeNonSectionedWithData:resArr];
+    self.displayData = resArr; //[sApplication arrangeNonSectionedWithData:resArr];
 }
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
