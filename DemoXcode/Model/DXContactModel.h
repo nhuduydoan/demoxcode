@@ -19,8 +19,9 @@
 @property (strong, nonatomic, readonly) NSArray *emails;
 @property (strong, nonatomic, readonly) NSArray *addressArray;
 @property (strong, nonatomic, readonly) UIImage *avatar;
+@property (strong, nonatomic, readonly) UIImage *thumbnail;
 
-- (instancetype)initWithCNContact:(CNContact *)contact;
+- (instancetype)initWithIdentifier:(NSString *)identifier fullName:(NSString *)fullName birthDay:(NSString *)birthDay phones:(NSArray *)phones emails:(NSArray *)emails addressArray:(NSArray *)addressArray avatar:(UIImage *)image;
 - (void)updateAvatar:(UIImage *)avatar;
 
 @end

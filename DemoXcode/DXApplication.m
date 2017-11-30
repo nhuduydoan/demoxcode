@@ -24,13 +24,13 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         if (!_instace) {
-            _instace = [[self.class alloc] init];
+            _instace = [[self.class alloc] initSharedInstance];
         }
     });
     return _instace;
 }
 
-- (instancetype)init
+- (instancetype)initSharedInstance
 {
     self = [super init];
     if (self) {
