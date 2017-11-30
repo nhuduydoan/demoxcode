@@ -19,6 +19,7 @@
 - (UIImage *)avatarImageFromFullName:(NSString *)fullName;
 - (UIImage *)imageFromString:(NSString *)string;
 
+- (NSArray *)sectionsArrayWhenArrangeSectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeSectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data;
 

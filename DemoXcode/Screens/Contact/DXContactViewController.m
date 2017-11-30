@@ -24,7 +24,7 @@
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) UIView *navTitleView;
 
-@property (strong, nonatomic) NSArray *originalData;
+@property (strong, nonatomic) NSMutableArray *originalData;
 @property (strong, nonatomic) NSArray *displayData;
 @property (strong, nonatomic) NSString *searchString;
 
@@ -36,6 +36,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
+    self.originalData = [NSMutableArray new];
     [self setUpNavigationItems];
     [self setUpNoResultLabel];
     [self setUpTableView];
@@ -84,6 +85,7 @@
     self.tableView.separatorColor = [UIColor colorWithWhite:0.85 alpha:1];
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];
+    [self.tableView reloadData];
 }
 
 - (void)setUpNoResultLabel {
@@ -163,18 +165,47 @@
 - (void)getAllContacts {
     
     weakify(self);
-    [sContactMngr getAllContactsWithCompletion:^(NSArray *contacts) {
-        if (contacts.count == 0) {
-            [self_weak_ displayNoResultlabel:YES];
-        } else {
-            [self_weak_ displayNoResultlabel:NO];
-        }
-        self_weak_.originalData = contacts.copy;
-        [self_weak_ searchWithKeyword:self.searchString];
-    }];
+    [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self_weak_ insertData:contacts];
+            if (self_weak_.originalData.count == 0) {
+                [self_weak_ displayNoResultlabel:YES];
+            } else {
+                [self_weak_ displayNoResultlabel:NO];
+            }
+            if(error) {
+                self_weak_.noResultLabel.text = error.localizedFailureReason;
+            } else {
+                self_weak_.noResultLabel.text = @"No result";
+            }
+        });
+    } isMultiCalback:YES];
 }
 
-- (void)searchWithKeyword:(NSString *)keyword {
+- (void)insertData:(NSArray *)data {
+    
+    if (data.count == 0) {
+        return;
+    }
+    
+    [self.originalData addObjectsFromArray:data];
+    [self filterWithKeyword:self.searchString];
+    
+    NSMutableArray *indexPaths = [NSMutableArray new];
+    for (id obj in data) {
+        NSInteger index = [self.displayData indexOfObject:obj];
+        if (index != NSNotFound) {
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+            [indexPaths addObject:indexPath];
+        }
+    }
+    
+    if (indexPaths.count > 0) {
+        [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+    }
+}
+
+- (void)filterWithKeyword:(NSString *)keyword {
     
     NSArray *resArr;
     if (keyword.length == 0 || self.originalData.count == 0) {
@@ -186,8 +217,7 @@
          resArr = [self.originalData filteredArrayUsingPredicate:compoundPredicate];
     }
     
-    self.displayData = [sApplication arrangeNonSectionedWithData:resArr];;
-    [self.tableView reloadData];
+    self.displayData = [sApplication arrangeNonSectionedWithData:resArr];
 }
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
@@ -243,7 +273,8 @@
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     
     self.searchString = searchText;
-    [self searchWithKeyword:self.searchString];
+    [self filterWithKeyword:self.searchString];
+    [self.tableView reloadData];
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {

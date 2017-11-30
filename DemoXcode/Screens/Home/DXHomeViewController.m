@@ -68,44 +68,44 @@
 - (void)checkAndDisplayContactsViewController {
     
     weakify(self);
-    [sContactMngr requestAccessForContactAuthorizationStatusWithCompetition:^(BOOL isAccess, NSError *error) {
-        if (isAccess) {
-            DXContactViewController *controlelr = [DXContactViewController new];
-            UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
-            [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
-        } else if (error) {
-            [self_weak_ displayError:error];
-        }
-        [self_weak_.getContactsButton setEnabled:YES];
-        
+    [sContactMngr requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (isAccess) {
+                DXContactViewController *controlelr = [DXContactViewController new];
+                UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
+                [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
+            } else if (error) {
+                [self_weak_ displayError:error];
+            }
+            [self_weak_.getContactsButton setEnabled:YES];
+        });
     }];
 }
 
 - (void)checkAndDisplayContactsPickerViewController {
     
     weakify(self);
-    [sContactMngr requestAccessForContactAuthorizationStatusWithCompetition:^(BOOL isAccess, NSError *error) {
-        if (isAccess) {
-            DXInviteFriendsViewController *controlelr = [DXInviteFriendsViewController new];
-            UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
-            [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
-        } else if (error) {
-            [self_weak_ displayError:error];
-        }
-        [self_weak_.pickContactsButton setEnabled:YES];
-        
+    [sContactMngr requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (isAccess) {
+                DXInviteFriendsViewController *controlelr = [DXInviteFriendsViewController new];
+                UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
+                [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
+            } else if (error) {
+                [self_weak_ displayError:error];
+            }
+            [self_weak_.pickContactsButton setEnabled:YES];
+        });
     }];
 }
 
 - (void)displayError:(NSError *)error {
     
-    NSString *message = error.domain;
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Error" message:message preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action){
-        // Ok action example
-    }];
-    UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Setting" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action){
-        // Other action
+    NSString *title = error.localizedDescription;
+    NSString *message = error.localizedFailureReason;
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Setting" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
         [alertController dismissViewControllerAnimated:YES completion:nil];
     }];

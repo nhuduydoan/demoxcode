@@ -11,265 +11,285 @@
 #import <Contacts/Contacts.h>
 #import "DXContactModel.h"
 
+#define kMaxCount 50
+
+@interface HandlerObject : NSObject
+
+@property (nonatomic) NSUInteger startIndex;
+@property (nonatomic) NSUInteger count;
+@property (nonatomic, copy, nonnull) void (^handlerBlock)(NSArray *contacts, NSError *error, BOOL isFinished);
+
+@end
+
+@implementation HandlerObject
+
+- (id)initWithStartIndex:(NSUInteger)startIndex count:(NSUInteger)count handlerBlock:(void (^)(NSArray *, NSError *, BOOL))handlerBlock {
+    NSAssert(count, @"Maxcount cannot be 0");
+    self = [super init];
+    if (self) {
+        _startIndex = startIndex;
+        _count = count;
+        _handlerBlock = handlerBlock;
+    }
+    return self;
+}
+
+@end
+
 @interface DXContactsManager ()
+
+@property (strong, nonatomic) dispatch_queue_t managerSafeQueue;
+@property (strong, nonatomic) NSThread *managerSafeThread;
+@property (strong, nonatomic) NSMutableArray *allCacheContacts;
+@property (strong, nonatomic) NSDate *requestDate;
+@property (nonatomic) BOOL isRequesting;
+@property (strong, nonatomic) NSMutableArray *handlerObjectsArr;
 
 @end
 
 @implementation DXContactsManager
 
 + (instancetype)shareInstance {
-    static id _instace;
+    static id _instance;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if (!_instace) {
-            _instace = [[self alloc] init];
-        }
+        _instance = [[self alloc] initShareInstance];
     });
-    return _instace;
+    return _instance;
 }
 
-#pragma mark - Private
-
-- (void)mainThread:(void (^)(void))block {
-    if ([[NSThread currentThread] isMainThread]) {
-        if (block) {
-            block();
-        }
-        
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (block) {
-                block();
-            }
+- (instancetype)initShareInstance {
+    
+    self = [super init];
+    if (self) {
+        _allCacheContacts = [NSMutableArray new];
+        _handlerObjectsArr = [NSMutableArray new];
+        _managerSafeQueue = dispatch_queue_create("RequestContactQueue", DISPATCH_QUEUE_SERIAL);
+        dispatch_async(_managerSafeQueue, ^{
+            self.managerSafeThread = [NSThread currentThread];
         });
     }
-}
-
-- (DXContactModel *)parseContactWithContact :(CNContact* )contact {
-    
-    NSString *fullName = [self parseNameWithContact:contact];
-    NSString *birthDay = [self parseBirthDayWithContact:contact];
-    UIImage *avartar = [UIImage imageWithData:contact.imageData];
-    NSArray * addrArr = [self parseAddressWithContact:contact];
-    NSArray *phones = [self parsePhonesWithContact:contact];
-    NSArray *emails = [self parseEmailsWithContact:contact];
-    DXContactModel *contactModel = [[DXContactModel alloc] initWithFullName:fullName birthDay:birthDay phones:phones emails:emails addressArray:addrArr avatar:avartar];
-    return contactModel;
-}
-
-- (NSString *)parseNameWithContact:(CNContact *)contact {
-    
-    NSString *firstName =  contact.givenName;
-    NSString *lastName =  contact.familyName;
-    NSString *fullName;
-    if (lastName == nil) {
-        fullName=[NSString stringWithFormat:@"%@",firstName];
-    } else if (firstName == nil) {
-        fullName = [NSString stringWithFormat:@"%@",lastName];
-    } else {
-        fullName = [NSString stringWithFormat:@"%@ %@",firstName,lastName];
-    }
-    return fullName;
-}
-
-- (NSArray *)parsePhonesWithContact:(CNContact *)contact {
-    
-    NSMutableArray *phones = [NSMutableArray new];
-    for (CNLabeledValue *label in contact.phoneNumbers) {
-        NSString *phone = [label.value stringValue];
-        if ([phone length] > 0) {
-            [phones addObject:phone];
-        }
-    }
-    return phones;
-}
-
-- (NSArray *)parseEmailsWithContact:(CNContact *)contact {
-    
-    NSMutableArray *emails = [NSMutableArray new];
-    for (CNLabeledValue *label in contact.emailAddresses) {
-        NSString *email = label.value;
-        if ([email length] > 0) {
-            [emails addObject:email];
-        }
-    }
-    return emails;
-}
-
-- (NSString *)parseBirthDayWithContact:(CNContact *)contact  {
-    
-    NSDateComponents *birthDayComponent;
-    NSString *birthDayStr;
-    birthDayComponent = contact.birthday;
-    if (birthDayComponent != nil) {
-        birthDayComponent = contact.birthday;
-        NSInteger day = [birthDayComponent day];
-        NSInteger month = [birthDayComponent month];
-        NSInteger year = [birthDayComponent year];
-        birthDayStr = [NSString stringWithFormat:@"%ld/%ld/%ld",(long)day,(long)month,(long)year];
-    }
-    return birthDayStr;
-}
-
-- (NSMutableArray *)parseAddressWithContact:(CNContact *)contact {
-    
-    NSMutableArray *addrArr = [NSMutableArray new];
-    CNPostalAddressFormatter *formatter = [[CNPostalAddressFormatter alloc]init];
-    NSArray *addresses = contact.postalAddresses;
-    for (CNLabeledValue *label in addresses) {
-        CNPostalAddress *address = label.value;
-        NSString *addressString = [formatter stringFromPostalAddress:address];
-        if ([addressString length] > 0) {
-            [addrArr addObject:addressString];
-        }
-    }
-    
-    return addrArr;
+    return self;
 }
 
 #pragma mark - Public
 
-- (void)requestAccessForContactAuthorizationStatusWithCompetition:(void (^)(BOOL isAccess, NSError *error))completeBlock {
+- (void)requestPermissionWithCompletionHandler:(void (^)(BOOL isAccess, NSError *error))completionHandler {
     
-    if (![CNContactStore class]) {
-        if (completeBlock) {
-            [self mainThread:^{
-                completeBlock(NO, nil);
-            }];
-        }
-        return;
-    }
-    
-    //ios9 or later
-    CNEntityType entityType = CNEntityTypeContacts;
-    CNAuthorizationStatus status = [CNContactStore authorizationStatusForEntityType:CNEntityTypeContacts];
-    switch (status) {
-        case CNAuthorizationStatusAuthorized: {
-            if (completeBlock) {
-                [self mainThread:^{
-                    completeBlock(YES, nil);
-                }];
+    [self runOnManagerSerialQueue:^{
+        if (![CNContactStore class]) {
+            if (completionHandler) {
+                NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Error",
+                                           NSLocalizedFailureReasonErrorKey:@"This application cannot get Contacts in this IOS verion."};
+                NSError *err = [NSError errorWithDomain:CNErrorDomain code:CNAuthorizationStatusDenied userInfo:userInfo];
+                completionHandler(NO, err);
             }
-            return;
         }
-            break;
-        case CNAuthorizationStatusNotDetermined: {
-            CNContactStore * contactStore = [[CNContactStore alloc] init];
-            [contactStore requestAccessForEntityType:entityType completionHandler:^(BOOL granted, NSError * _Nullable error) {
-                if (completeBlock) {
-                    [self mainThread:^{
-                        completeBlock(granted, nil);
-                    }];
-                }
-            }];
-        }
-            break;
-            
-        case CNAuthorizationStatusDenied: {
-            [self mainThread:^{
-                NSError *error = [NSError errorWithDomain:@"You explicitly denied access to contact data. Please go to Settings and allow this appliaction use phone's contacts" code:-1 userInfo:nil];
-                if (completeBlock){
-                    completeBlock(NO, error);
-                }
-            }];
-        }
-            break;
-            
-        case CNAuthorizationStatusRestricted: {
-            [self mainThread:^{
-                NSError *error = [NSError errorWithDomain:@"You cannot change this application’s status, possibly due to active restrictions such as parental controls being in place." code:-1 userInfo:nil];
-                if (completeBlock){
-                    completeBlock(NO, error);
-                }
-            }];
-        }
-            break;
-            
-        default: {
-            [self mainThread:^{
-                if (completeBlock){
-                    completeBlock(NO, nil);
-                }
-            }];
-        }
-            break;
+        
+        CNEntityType entityType = CNEntityTypeContacts;
+        CNContactStore * contactStore = [[CNContactStore alloc] init];
+        [contactStore requestAccessForEntityType:entityType completionHandler:^(BOOL granted, NSError * _Nullable error) {
+            if (completionHandler) {
+                completionHandler(granted, error);
+            }
+        }];
+    }];
+}
+
+- (void)getAllComtactsWithCompletionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler isMultiCalback:(BOOL)isMultiCalback {
+    
+    NSAssert(completionHandler, @"completionHandler cannot be null");
+    if (isMultiCalback) {
+        NSMutableArray *contactsArr = [NSMutableArray new];
+        [self getAllDataFromIndex:0 multiCallBackWithHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+            if (contacts.count) {
+                [contactsArr addObjectsFromArray:contacts];
+            }
+            if (isFinished) {
+                completionHandler(contactsArr, error, YES);
+            }
+        }];
+    } else {
+        [self getAllDataFromIndex:0 multiCallBackWithHandler:completionHandler];
     }
 }
 
-- (void)getAllContactsWithCompletion:(void (^)(NSArray *contacts))completeBlock {
+- (void)getAllDataFromIndex:(NSUInteger)fromIndex multiCallBackWithHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler {
     
-    if (![CNContactStore class]) {
-        if (completeBlock) {
-            if (completeBlock) {
-                [self mainThread:^{
-                    completeBlock(nil);
-                }];
-            }
+    weakify(self);
+    [self loadMoreContactsFromIndex:fromIndex count:kMaxCount withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+        completionHandler(contacts, error, isFinished);
+        if (!isFinished) {
+            NSInteger nextStartIndex = fromIndex + contacts.count;
+            [self_weak_ getAllDataFromIndex:nextStartIndex multiCallBackWithHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+                completionHandler(contacts, error, isFinished);
+            }];
         }
-        return;
+    }];
+}
+
+- (void)loadMoreContactsFromIndex:(NSUInteger)fromIndex count:(NSUInteger)count withCompletionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler {
+    
+    NSAssert(completionHandler, @"completionHandler cannot be null");
+    NSAssert(count, @"Maxcount cannot be 0");
+    if (count > kMaxCount) {
+        count = kMaxCount;
     }
     
-    CNContactStore *contactStore = [[CNContactStore alloc] init];
-    [contactStore requestAccessForEntityType:CNEntityTypeContacts completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        NSMutableArray *contactsArr = [NSMutableArray new];
-        if (granted == YES) {
-            //keys with fetching properties
-            NSArray *keys = @[CNContactFamilyNameKey, CNContactGivenNameKey, CNContactPhoneNumbersKey, CNContactImageDataKey, CNContactEmailAddressesKey, CNContactPostalAddressesKey, CNContactBirthdayKey];
-            CNContactFetchRequest *request = [[CNContactFetchRequest alloc] initWithKeysToFetch:keys];
-            request.sortOrder = CNContactSortOrderUserDefault;
-           [contactStore enumerateContactsWithFetchRequest:request error:&error usingBlock:^(CNContact * __nonnull contact, BOOL * __nonnull stop) {
-                if (error) {
-                    NSLog(@"error fetching contacts %@", error);
-                } else {
-                    DXContactModel *contactModel = [self parseContactWithContact:contact];
-                    if (contactModel) {
-                        [contactsArr addObject:contactModel];
-                    }
-                }
+    weakify(self);
+    [self requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
+        if (isAccess) {
+            [self_weak_ runOnManagerSerialQueue:^{
+                [self_weak_ getDataFromIndex:fromIndex count:count completionHandler:completionHandler];
             }];
+        } else {
+            completionHandler(nil, error, YES);
         }
-        if (completeBlock) {
-            [self mainThread:^{
-                completeBlock(contactsArr);
-            }];
-        }
-        
-        
-        //            NSArray *allContainers = [contactStore containersMatchingPredicate:nil error:&error];
-        //            if (error) {
-        //                if (completeBlock) {
-        //                    if (completeBlock) {
-        //                        [self mainThread:^{
-        //                            completeBlock(nil);
-        //                        }];
-        //                    }
-        //                }
-        //                return;
-        //            }
-        //            for (CNContainer *container in allContainers) {
-        //                NSString *containerId = container.identifier;
-        //                NSPredicate *predicate = [CNContact predicateForContactsInContainerWithIdentifier:containerId];
-        //                NSArray *cnContacts = [contactStore unifiedContactsMatchingPredicate:predicate keysToFetch:keys error:&error];
-        //                //            cnContacts = [contactStore unifiedContactsMatchingPredicate:[CNContact predicateForContactsMatchingName:@"John Appleseed"] keysToFetch:keys error:&error];
-        //                if (error) {
-        //                    NSLog(@"error fetching contacts %@", error);
-        //                    continue;
-        //
-        //                } else {
-        //                    for (CNContact *contact in cnContacts) {
-        //                        DXContactModel *contactModel = [self parseContactWithContact:contact];
-        //                        if (contactModel) {
-        //                            [contactsArr addObject:contactModel];
-        //                        }
-        //                    }
-        //                }
-        //                if (completeBlock) {
-        //                    [self mainThread:^{
-        //                        completeBlock(contactsArr);
-        //                    }];
-        //                }
-        //            }
     }];
+}
+
+// NOTE: All privates methods must be run on Manager Serial Queue
+#pragma mark - Private
+
+- (void)getDataFromIndex:(NSUInteger)fromIndex count:(NSUInteger)count completionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler {
+    
+    if (self.isRequesting) {
+        if (self.allCacheContacts.count >=  fromIndex + count) {
+            NSArray *contactsArr = [self arrayContactFromIndex:fromIndex lastIndex:(fromIndex + count - 1)];
+            completionHandler(contactsArr, nil, NO);
+        } else {
+            [self addHandlerObjectWithStartIndex:fromIndex count:count withHandler:completionHandler];
+        }
+        
+    } else {
+        if (self.requestDate != nil) {
+            BOOL isFinish = NO;
+            NSUInteger lastPosition = fromIndex + count;
+            if (self.allCacheContacts.count <= lastPosition) {
+                isFinish = YES;
+                lastPosition = self.allCacheContacts.count;
+            }
+            NSArray *contactsArr = [self arrayContactFromIndex:fromIndex lastIndex:(lastPosition - 1)];
+            completionHandler(contactsArr, nil, isFinish);
+        } else {
+            [self addHandlerObjectWithStartIndex:fromIndex count:count withHandler:completionHandler];
+        }
+        if (!self.requestDate || [[NSDate date] timeIntervalSinceDate:self.requestDate] > 120) {
+            [self requestAllContacts];
+        }
+    }
+}
+
+- (void)runOnManagerSerialQueue:(void (^)(void))block {
+    
+    if ([NSThread currentThread] == self.managerSafeThread) {
+        block();
+    } else {
+        dispatch_async(self.managerSafeQueue, ^{
+            block();
+        });
+    }
+}
+
+- (id)addHandlerObjectWithStartIndex:(NSUInteger)fromIndex count:(NSUInteger)count withHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))handler {
+    
+    if (!handler) {
+        return nil;
+    }
+    
+    HandlerObject *handlerObject = [[HandlerObject alloc] initWithStartIndex:fromIndex count:count handlerBlock:handler];
+    [self.handlerObjectsArr addObject:handlerObject];
+    return handlerObject;
+}
+
+- (void)checkAndRunHandlerObjects {
+    
+    NSInteger i =  self.handlerObjectsArr.count - 1;
+    for (; i >= 0; i--) {
+        HandlerObject *handlerObj = self.handlerObjectsArr[i];
+        NSInteger lastIndex = handlerObj.startIndex + handlerObj.count - 1;
+        if (self.allCacheContacts.count > lastIndex) {
+            [self runHandlerObject:handlerObj];
+            [self.handlerObjectsArr removeObjectAtIndex:i];
+        }
+    }
+}
+
+- (void)runAndReleaseAllHandlerObjects {
+    
+    NSInteger i =  self.handlerObjectsArr.count - 1;
+    for (; i >= 0; i--) {
+        HandlerObject *handlerObj = self.handlerObjectsArr[i];
+        [self runHandlerObject:handlerObj];
+        [self.handlerObjectsArr removeObjectAtIndex:i];
+    }
+}
+
+- (void)runHandlerObject:(HandlerObject *)handlerObj {
+    
+    BOOL isFinished = NO;
+    NSInteger lastPosition = handlerObj.startIndex + handlerObj.count;
+    if (lastPosition >= self.allCacheContacts.count) {
+        lastPosition = self.allCacheContacts.count;
+        if (!self.isRequesting) {
+            isFinished = YES;
+        }
+    }
+    NSArray *contactsArr = [self arrayContactFromIndex:handlerObj.startIndex lastIndex:lastPosition - 1];
+    if (contactsArr.count == 0) {
+        isFinished = YES;
+    }
+    handlerObj.handlerBlock(contactsArr, nil, isFinished);
+}
+
+- (NSArray *)arrayContactFromIndex:(NSUInteger)fromIndex lastIndex:(NSUInteger)lastIndex {
+    
+    if (self.allCacheContacts.count == 0) {
+        return nil;
+    }
+    NSMutableArray *contactsArr = [NSMutableArray new];
+    for (NSInteger i = fromIndex; i <= lastIndex; i++ ) {
+        DXContactModel *contactModel = self.allCacheContacts[i];
+        [contactsArr addObject:contactModel];
+    }
+    return contactsArr;
+}
+
+- (void)requestAllContacts {
+    
+    self.isRequesting = YES;
+    self.requestDate = [NSDate date];
+    [self.allCacheContacts removeAllObjects];
+    //keys with fetching properties
+    NSArray *keys = @[CNContactFamilyNameKey,
+                      CNContactGivenNameKey,
+                      CNContactPhoneNumbersKey,
+                      CNContactImageDataKey,
+                      CNContactEmailAddressesKey,
+                      CNContactPostalAddressesKey,
+                      CNContactBirthdayKey];
+    CNContactFetchRequest *request = [[CNContactFetchRequest alloc] initWithKeysToFetch:keys];
+    request.sortOrder = CNContactSortOrderUserDefault;
+    CNContactStore *contactStore = [[CNContactStore alloc] init];
+    NSError *err;
+    __block NSInteger count;
+    weakify(self);
+    [contactStore enumerateContactsWithFetchRequest:request error:&err usingBlock:^(CNContact * __nonnull contact, BOOL * __nonnull stop) {
+        if (contact) {
+            DXContactModel *contactModel = [[DXContactModel alloc] initWithCNContact:contact];
+            if (contactModel) {
+                count++;
+                [self_weak_.allCacheContacts addObject:contactModel];
+                if (count >= kMaxCount) {
+                    [self_weak_ checkAndRunHandlerObjects];
+                    count = 0;
+                }
+            }
+        }
+    }];
+    self.isRequesting = NO;
+    self.requestDate = [NSDate date];
+    [self runAndReleaseAllHandlerObjects];
 }
 
 @end

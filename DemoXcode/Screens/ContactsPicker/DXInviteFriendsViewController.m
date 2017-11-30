@@ -27,7 +27,7 @@
 @property (strong, nonatomic) DXPickContactsViewController *pickContactsViewController;
 @property (strong, nonatomic) DXResultSearchViewController *searchResultViewController;
 
-@property (strong, nonatomic) NSArray *originalData;
+@property (strong, nonatomic) NSMutableArray *originalData;
 
 @end
 
@@ -37,7 +37,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
-    self.originalData = [NSArray new];
+    self.originalData = [NSMutableArray new];
     [self setupTitleView];
     [self setupNavigationBarItems];
     [self setupHeaderView];
@@ -167,6 +167,7 @@
     controller.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.contentView insertSubview:controller.view atIndex:0];
     self.pickContactsViewController = controller;
+    [self.pickContactsViewController reloadWithData:self.originalData];
 }
 
 - (void)setupSearchResultViewController {
@@ -227,11 +228,14 @@
 
 - (void)getAllContactsData {
     
+    [self.originalData removeAllObjects];
     weakify(self);
-    [sContactMngr getAllContactsWithCompletion:^(NSArray *contacts) {
-        self_weak_.originalData = contacts.copy;
-        [self_weak_.pickContactsViewController reloadWithData:contacts];
-    }];
+    [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self_weak_.originalData addObjectsFromArray:contacts.copy];
+            [self_weak_.pickContactsViewController reloadWithData:self_weak_.originalData];
+        });
+    } isMultiCalback:YES];
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {

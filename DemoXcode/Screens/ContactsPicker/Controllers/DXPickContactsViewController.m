@@ -56,20 +56,11 @@
 - (void)setUpSectionedTableViewModelWithData:(NSArray *)data {
     
     NSArray *arrangedData = [sApplication arrangeSectionedWithData:data];
-    NSMutableArray *tableViewData = [NSMutableArray new];
-    for (id model in arrangedData) {
-        if (![model isKindOfClass:[NSString class]]) {
-            NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
-            [tableViewData addObject:cellObject];
-        } else {
-            [tableViewData addObject:model];
-        }
-    }
-    
+    NSMutableArray *tableViewData = [self tableviewDataFromData:arrangedData];
     self.data = tableViewData;
     self.tableviewModel = [[NIMutableTableViewModel alloc] initWithSectionedArray:tableViewData delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexDynamic
-                                 showsSearch:(arrangedData.count > 0)
+                                 showsSearch:(tableViewData.count > 0)
                                 showsSummary:NO];
     
     self.tableView.dataSource = self.tableviewModel;
@@ -90,21 +81,21 @@
     self.tableView.delegate = [self.actions forwardingTo:self];
 }
 
-- (BOOL)didSelectObject:(id)object atIndexPath:(NSIndexPath *)indexPath {
-    
-    id model = [object userInfo];
-    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
-        BOOL isSelected = [self.delegate pickContactsViewController:self didSelectModel:model];
-        return !isSelected;
-    }
-    return YES;
-}
-
 #pragma mark - Public
 
 - (void)reloadWithData:(NSArray *)data {
     
     [self setUpSectionedTableViewModelWithData:data];
+}
+
+- (void)insertNewData:(NSArray *)data {
+    
+    if (data.count == 0) {
+        return;
+    }
+    
+    NSArray *sectionsArr = [sApplication sectionsArrayWhenArrangeSectionedWithData:data];
+    [self.tableView reloadData];
 }
 
 - (void)checkSelectedWithData:(NSArray *)data {
@@ -163,6 +154,20 @@
 
 #pragma mark - Private
 
+- (NSMutableArray *)tableviewDataFromData:(NSArray *)data {
+    
+    NSMutableArray *tableViewData = [NSMutableArray new];
+    for (id model in data) {
+        if (![model isKindOfClass:[NSString class]]) {
+            NICellObject *cellObject = [NICellObject objectWithCellClass:[DXPickContactTableViewCell class] userInfo:model];
+            [tableViewData addObject:cellObject];
+        } else {
+            [tableViewData addObject:model];
+        }
+    }
+    return tableViewData;
+}
+
 - (id)cellObjectForModel:(id)model {
     
     for (NICellObject *object in self.data) {
@@ -171,6 +176,16 @@
         }
     }
     return nil;
+}
+
+- (BOOL)didSelectObject:(id)object atIndexPath:(NSIndexPath *)indexPath {
+    
+    id model = [object userInfo];
+    if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
+        BOOL isSelected = [self.delegate pickContactsViewController:self didSelectModel:model];
+        return !isSelected;
+    }
+    return YES;
 }
 
 #pragma mark - NITableViewModelDelegate

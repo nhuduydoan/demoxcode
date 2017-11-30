@@ -170,6 +170,34 @@
     return image;
 }
 
+- (NSArray *)sectionsArrayWhenArrangeSectionedWithData:(NSArray *)data {
+    
+    if (data.count == 0) {
+        return nil;
+    }
+    
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    NSMutableArray *sectionsArr = [NSMutableArray new];
+    NSMutableArray *section = [NSMutableArray new];
+    DXContactModel *firstModel = sortedArray.firstObject;
+    NSString *groupKey = [self groupKeyForString:firstModel.fullName];
+    [section addObject:groupKey];
+    
+    for (DXContactModel *contact in sortedArray) {
+        NSString *checkKey = [self groupKeyForString:contact.fullName];
+        if (![checkKey isEqualToString:groupKey]) {
+            [sectionsArr addObject:section];
+            section = [NSMutableArray new];
+            groupKey = checkKey;
+            [section addObject:checkKey];
+        }
+        [section addObject:contact];
+    }
+    
+    return sectionsArr;
+}
+
 - (NSArray *)arrangeSectionedWithData:(NSArray *)data {
     
     if (data.count == 0) {
@@ -178,41 +206,33 @@
     
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
     NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
-    
-    NSMutableArray *alphabetArray = [NSMutableArray new];
-    NSMutableArray *sharpArray = [NSMutableArray new];
-    NSInteger count = sortedArray.count;
-    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+    NSMutableArray *arrangedArray = [NSMutableArray new];
     NSString *groupKey = @"";
     
-    for (NSInteger i = 0; i < count; i ++) {
-        DXContactModel *contact = sortedArray[i];
-        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (name.length == 0) {
-            [sharpArray addObject:contact];
-        } else {
-            unichar firstChar = [name characterAtIndex:0];
-            if (![letters characterIsMember:firstChar]) {
-                // If first letter is not alphabet
-                [sharpArray addObject:contact];
-            } else {
-                NSString *firstKey = [name substringToIndex:1].uppercaseString;
-                if (![firstKey isEqualToString:groupKey]) {
-                    // If First Key is new key
-                    groupKey = firstKey;
-                    [alphabetArray addObject:groupKey];
-                }
-                [alphabetArray addObject:contact];
-            }
+    for (DXContactModel *contact in sortedArray) {
+        NSString *checkKey = [self groupKeyForString:contact.fullName] ;
+        if (![checkKey isEqualToString:groupKey]) {
+            groupKey = checkKey;
+            [arrangedArray addObject:checkKey];
         }
+        [arrangedArray addObject:contact];
     }
     
-    if (sharpArray.count > 0) {
-        [sharpArray insertObject:@"#" atIndex:0];
-        [sharpArray addObjectsFromArray:alphabetArray];
-    }
+    return arrangedArray;
+}
+
+- (NSString *)groupKeyForString:(NSString *)string {
     
-    return sharpArray;
+    NSString *checkString = [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    if (checkString.length == 0) {
+        return @"#";
+    }
+    unichar firstChar = [checkString characterAtIndex:0];
+    if (![[NSCharacterSet letterCharacterSet] characterIsMember:firstChar]) {
+        return @"#";
+    }
+    NSString *groupKey = [string substringToIndex:1].uppercaseString;
+    return groupKey;
 }
 
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
@@ -223,31 +243,17 @@
     
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
     NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
-    
-    NSMutableArray *alphabetArray = [NSMutableArray new];
-    NSMutableArray *sharpArray = [NSMutableArray new];
-    NSCharacterSet *letters = [NSCharacterSet letterCharacterSet];
+    NSMutableArray *arrangedArray = [NSMutableArray new];
+    NSString *groupKey = @"";
     
     for (DXContactModel *contact in sortedArray) {
-        NSString *name = [contact.fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        if (name.length == 0) {
-            [sharpArray addObject:contact];
-        } else {
-            unichar firstChar = [name characterAtIndex:0];
-            if ([letters characterIsMember:firstChar]) {
-                // If first letter is alphabet
-                [alphabetArray addObject:contact];
-            } else {
-                // If first letter is not alphabet
-                [sharpArray addObject:contact];
-            }
+        NSString *checkKey = [self groupKeyForString:contact.fullName] ;
+        if (![checkKey isEqualToString:groupKey]) {
+            groupKey = checkKey;
         }
+        [arrangedArray addObject:contact];
     }
-    
-    if (alphabetArray.count > 0) {
-        [sharpArray addObjectsFromArray:alphabetArray];
-    }
-    return sharpArray;
+    return arrangedArray;
 }
 
 @end
