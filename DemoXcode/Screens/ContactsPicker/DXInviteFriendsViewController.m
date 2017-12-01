@@ -231,12 +231,10 @@
     [self.originalData removeAllObjects];
     weakify(self);
     [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self_weak_.originalData addObjectsFromArray:contacts];
-            [self_weak_.pickContactsViewController insertNewData:contacts];
-        });
+        [self_weak_.originalData addObjectsFromArray:contacts];
+        [self_weak_.pickContactsViewController insertNewData:contacts];
         
-    } isMultiCalback:YES];
+    } callBackQueue:dispatch_get_main_queue() multiCallBack:YES];
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {

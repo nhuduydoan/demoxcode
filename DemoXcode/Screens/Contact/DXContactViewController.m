@@ -179,38 +179,34 @@
     [self.tableView reloadData];
     weakify(self);
     [sContactMngr loadMoreContactsFromIndex:0 count:50 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (contacts.count) {
-                [self_weak_.originalData addObjectsFromArray:contacts];
-                [self_weak_ filterWithKeyword:self.searchString];
-                [self_weak_.tableView reloadData];
-            }
-            if (self_weak_.originalData.count == 0) {
-                [self_weak_ displayNoResultlabel:YES];
-            } else {
-                [self_weak_ displayNoResultlabel:NO];
-            }
-            if(error) {
-                self_weak_.noResultLabel.text = error.localizedFailureReason;
-            } else {
-                self_weak_.noResultLabel.text = @"No result";
-            }
-            [self.tableView.pullToRefreshView stopAnimating];
-            [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
-        });
-    }];
+        if (contacts.count) {
+            [self_weak_.originalData addObjectsFromArray:contacts];
+            [self_weak_ filterWithKeyword:self_weak_.searchString];
+            [self_weak_.tableView reloadData];
+        }
+        if (self_weak_.originalData.count == 0) {
+            [self_weak_ displayNoResultlabel:YES];
+        } else {
+            [self_weak_ displayNoResultlabel:NO];
+        }
+        if(error) {
+            self_weak_.noResultLabel.text = error.localizedFailureReason;
+        } else {
+            self_weak_.noResultLabel.text = @"No result";
+        }
+        [self_weak_.tableView.pullToRefreshView stopAnimating];
+        [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
+    } callBackQueue:dispatch_get_main_queue()];
 }
 
 -  (void)loadMoreData {
     
     weakify(self);
     [sContactMngr loadMoreContactsFromIndex:self.originalData.count count:20 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self_weak_ insertData:contacts];
-            [self_weak_.tableView.infiniteScrollingView stopAnimating];
-            [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
-        });
-    }];
+        [self_weak_ insertData:contacts];
+        [self_weak_.tableView.infiniteScrollingView stopAnimating];
+        [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
+    } callBackQueue:dispatch_get_main_queue()];
 }
 
 - (void)insertData:(NSArray *)data {

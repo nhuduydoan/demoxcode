@@ -69,17 +69,15 @@
     
     weakify(self);
     [sContactMngr requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (isAccess) {
-                DXContactViewController *controlelr = [DXContactViewController new];
-                UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
-                [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
-            } else if (error) {
-                [self_weak_ displayError:error];
-            }
-            [self_weak_.getContactsButton setEnabled:YES];
-        });
-    }];
+        if (isAccess) {
+            DXContactViewController *controlelr = [DXContactViewController new];
+            UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
+            [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
+        } else if (error) {
+            [self_weak_ displayError:error];
+        }
+        [self_weak_.getContactsButton setEnabled:YES];
+    } callBackQueue:dispatch_get_main_queue()];
 }
 
 - (void)checkAndDisplayContactsPickerViewController {
@@ -96,7 +94,7 @@
             }
             [self_weak_.pickContactsButton setEnabled:YES];
         });
-    }];
+    } callBackQueue:dispatch_get_main_queue()];
 }
 
 - (void)displayError:(NSError *)error {
