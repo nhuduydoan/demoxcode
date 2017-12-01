@@ -126,8 +126,9 @@
         }
         
     }
-    NSLog(@"");
+    
     self.tableviewData = [self tableviewDataFromData:arrangedData];
+    [self.tableviewModel updateSectionIndex];
 }
 
 - (NSInteger)indexOfSection:(NSString *)section inData:(NSArray *)data {

@@ -12,12 +12,16 @@
 @interface DXContactsDetailViewController ()
 
 @property (strong, nonatomic) UIView *avatarView;
-@property (strong, nonatomic) UILabel *avatarTextLabel;
 @property (strong, nonatomic) UIImageView *avatarImgView;
+@property (strong, nonatomic) UILabel *nameTitle;
 @property (strong, nonatomic) UILabel *fullNameLabel;
+@property (strong, nonatomic) UILabel *birthDayTitle;
 @property (strong, nonatomic) UILabel *birthDaylabel;
+@property (strong, nonatomic) UILabel *phoneTitle;
 @property (strong, nonatomic) UILabel *phoneLabel;
+@property (strong, nonatomic) UILabel *emailTitle;
 @property (strong, nonatomic) UILabel *emailLabel;
+@property (strong, nonatomic) UILabel *addressTitle;
 @property (strong, nonatomic) UILabel *addressLabel;
 
 @property (strong, nonatomic) DXContactModel *contactModel;
@@ -39,6 +43,7 @@
     // Do any additional setup after loading the view from its nib.
     
     self.navigationController.navigationBar.translucent = NO;
+    [self setupViews];
     [self setUpColor];
     [self displayContactModel:self.contactModel];
 }
@@ -52,20 +57,76 @@
 
 - (void)setupViews {
     
-    self.avatarView = [[UIView alloc] initWithFrame:CGRectMake(0, 20, self.view.bounds.size.width, 50)];
+    self.avatarView = [[UIView alloc] initWithFrame:CGRectMake(10, 10, 60, 60)];
+    self.avatarView.layer.cornerRadius = 30;
+    self.avatarView.clipsToBounds = YES;
+    self.avatarImgView = [[UIImageView alloc] initWithFrame:self.avatarView.bounds];
+    [self.avatarView addSubview:self.avatarImgView];
+    [self.view addSubview:self.avatarView];
+    
+    CGRect frame = CGRectMake(80, 10, self.view.bounds.size.width - 90, 20);
+    self.nameTitle = [[UILabel alloc] initWithFrame:frame];
+    self.nameTitle.text = @"Full Name";
+    self.nameTitle.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    frame.origin.y = frame.origin.y + frame.size.height + 10;
+    self.fullNameLabel = [[UILabel alloc] initWithFrame:frame];
+    self.fullNameLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.nameTitle];
+    [self.view addSubview:self.fullNameLabel];
+    
+    frame.origin.x = 40;
+    frame.size.width = self.view.bounds.size.width - 50;
+    frame.origin.y = frame.origin.y + frame.size.height + 20;
+    self.birthDayTitle = [[UILabel alloc] initWithFrame:frame];
+    self.birthDayTitle.text = @"Birth Day";
+    self.birthDayTitle.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    frame.origin.y = frame.origin.y + frame.size.height + 10;
+    self.birthDaylabel = [[UILabel alloc] initWithFrame:frame];
+    self.birthDaylabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.birthDayTitle];
+    [self.view addSubview:self.birthDaylabel];
+    
+    frame.origin.y = frame.origin.y + frame.size.height + 20;
+    self.phoneTitle = [[UILabel alloc] initWithFrame:frame];
+    self.phoneTitle.text = @"Phone Number";
+    self.phoneTitle.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    frame.origin.y = frame.origin.y + frame.size.height + 10;
+    self.phoneLabel = [[UILabel alloc] initWithFrame:frame];
+    self.phoneLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.phoneTitle];
+    [self.view addSubview:self.phoneLabel];
+    
+    frame.origin.y = frame.origin.y + frame.size.height + 20;
+    self.emailTitle = [[UILabel alloc] initWithFrame:frame];
+    self.emailTitle.text = @"Email";
+    self.emailTitle.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    frame.origin.y = frame.origin.y + frame.size.height + 10;
+    self.emailLabel = [[UILabel alloc] initWithFrame:frame];
+    self.emailLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.emailTitle];
+    [self.view addSubview:self.emailLabel];
+    
+    frame.origin.y = frame.origin.y + frame.size.height + 20;
+    self.addressTitle = [[UILabel alloc] initWithFrame:frame];
+    self.addressTitle.text = @"Address";
+    self.addressTitle.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    frame.origin.y = frame.origin.y + frame.size.height + 10;
+    self.addressLabel = [[UILabel alloc] initWithFrame:frame];
+    self.addressLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.addressTitle];
+    [self.view addSubview:self.addressLabel];
 }
 
 - (void)setUpColor {
     
+    self.view.backgroundColor = [UIColor whiteColor];
     self.fullNameLabel.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1.0];
     self.birthDaylabel.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1.0];
     self.phoneLabel.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1.0];
     self.emailLabel.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1.0];
     self.addressLabel.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1.0];
-    self.avatarTextLabel.textColor = [UIColor whiteColor];
-    [self.avatarTextLabel setBackgroundColor:[UIColor colorWithRed:173.0/255.f green:175/255.f blue:231/255.f alpha:1]];
-    self.avatarView.layer.cornerRadius = self.avatarView.bounds.size.width / 2;
-    self.avatarTextLabel.alpha = 0;
+//    self.avatarView.backgroundColor = [UIColor lightGrayColor];
+    self.avatarImgView.backgroundColor = [UIColor redColor];
 }
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
@@ -75,34 +136,7 @@
     self.phoneLabel.text = contactModel.phones.firstObject;
     self.emailLabel.text = contactModel.emails.firstObject;
     self.addressLabel.text = contactModel.addressArray.firstObject;
-    if (contactModel.avatar) {
-        self.avatarImgView.image = contactModel.avatar;
-    } else {
-        [self displayAvatarWithFullName:contactModel.fullName];
-    }
-}
-
-- (void)displayAvatarWithFullName:(NSString *)fullName {
-    
-    self.avatarTextLabel.alpha = 1;
-    self.avatarImgView.alpha = 0;
-    
-    NSString *avatarStr = @"";
-    NSString *name = [fullName stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    while ([name rangeOfString:@"  "].length > 0) {
-        name = [name stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-    }
-    
-    if (fullName.length == 0) {
-        return;
-    }
-    
-    NSArray *words = [name componentsSeparatedByString:@" "];
-    for (NSInteger i = 0; i < 3 && i < words.count; i ++) {
-        NSString *character = [[words objectAtIndex:i] substringToIndex:1];
-        avatarStr = [avatarStr stringByAppendingString:character.uppercaseString];
-    }
-    self.avatarTextLabel.text = avatarStr;
+    self.avatarImgView.image = contactModel.avatar;
 }
 
 @end

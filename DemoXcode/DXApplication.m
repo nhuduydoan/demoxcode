@@ -182,8 +182,7 @@
         return nil;
     }
     
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    NSArray *sortedArray = [self sortArrayFromArray:data];
     NSMutableArray *sectionsArr = [NSMutableArray new];
     NSMutableArray *section = [NSMutableArray new];
     DXContactModel *firstModel = sortedArray.firstObject;
@@ -211,20 +210,11 @@
         return data;
     }
     
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    NSArray *sections = [self sectionsArraySectionedWithData:data];
     NSMutableArray *arrangedArray = [NSMutableArray new];
-    NSString *groupKey = @"";
-    
-    for (DXContactModel *contact in sortedArray) {
-        NSString *checkKey = [self groupKeyForString:contact.fullName] ;
-        if (![checkKey isEqualToString:groupKey]) {
-            groupKey = checkKey;
-            [arrangedArray addObject:checkKey];
-        }
-        [arrangedArray addObject:contact];
+    for (NSArray *section in sections) {
+        [arrangedArray addObjectsFromArray:section];
     }
-    
     return arrangedArray;
 }
 
@@ -248,8 +238,7 @@
         return [NSMutableArray new];
     }
     
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey: @"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
-    NSArray *sortedArray = [data sortedArrayUsingDescriptors:@[sortDescriptor]];
+    NSArray *sortedArray = [self sortArrayFromArray:data];
     NSMutableArray *arrangedArray = [NSMutableArray new];
     NSString *groupKey = @"";
     
@@ -262,6 +251,14 @@
     }
     return arrangedArray;
 }
+
+- (NSArray *)sortArrayFromArray:(NSArray *)array {
+    
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
+    NSArray *sortedArray = [array sortedArrayUsingDescriptors:@[sortDescriptor]];
+    return sortedArray;
+}
+
 #pragma mark - Contact Model
 
 - (id)parseContactModelWithCNContact:(CNContact *)contact {
@@ -288,11 +285,11 @@
     NSString *lastName =  contact.familyName;
     NSString *fullName;
     if (lastName == nil) {
-        fullName=[NSString stringWithFormat:@"%@",firstName];
+        fullName = [NSString stringWithFormat:@"%@", firstName];
     } else if (firstName == nil) {
-        fullName = [NSString stringWithFormat:@"%@",lastName];
+        fullName = [NSString stringWithFormat:@"%@", lastName];
     } else {
-        fullName = [NSString stringWithFormat:@"%@ %@",firstName,lastName];
+        fullName = [NSString stringWithFormat:@"%@ %@", firstName, lastName];
     }
     return fullName;
 }

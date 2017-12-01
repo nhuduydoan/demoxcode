@@ -81,6 +81,12 @@
     return self;
 }
 
+- (instancetype) init {
+    [super doesNotRecognizeSelector:_cmd];
+    self = nil;
+    return nil;
+}
+
 #pragma mark - Public
 
 - (void)requestPermissionWithCompletionHandler:(void (^)(BOOL isAccess, NSError *error))completionHandler callBackQueue:(dispatch_queue_t)callBackQueue {
@@ -165,59 +171,20 @@
 // NOTE: All privates methods must be run on Manager Serial Queue
 #pragma mark - Private
 
-- (void)checkQueue {
-    NSLog(@"%@", dispatch_get_current_queue());
-    if (dispatch_get_current_queue() != self.managerSafeQueue) {
-        NSLog(@"===== Loi Queue, Xem lai ngay di ku=======");
-    }
-}
-
 - (void)getDataFromIndex:(NSUInteger)fromIndex count:(NSUInteger)count callBackQueue:(dispatch_queue_t)callBackQueue completionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler {
     
-    [self checkQueue];
     if (self.isRequesting) {
-        NSLog(@" ==== Requesting ===");
-        NSInteger lastPosition = fromIndex + count;
-        if ([self recentRequestContactCount] >= lastPosition) {
-            NSMutableArray *contactsArr = [NSMutableArray new];
-            for (NSInteger i = fromIndex; i < lastPosition; i++ ) {
-                CNContact *contact = [self recentRequestContactAtIndex:i];
-                DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
-                [contactsArr addObject:contactModel];
-            }
-            [self runOnQueueOrDefault:callBackQueue block:^{
-                completionHandler(contactsArr, nil, NO);
-            }];
-        } else {
+        BOOL success = [self recentContactsFromIndex:fromIndex count:count completionHandler:completionHandler callBackQueue:callBackQueue];
+        if (!success) { // Cannot get data from recent contacts and no completion handler were called
             [self addHandlerObjectWithStartIndex:fromIndex count:count handlerBlock:completionHandler callBackQueue:callBackQueue];
         }
         
     } else {
-        NSArray *cacheData = [self cacheContactsData];
-        if (cacheData != nil) {
-            NSLog(@"==== Requestested====");
-            BOOL isFinish = NO;
-            NSUInteger lastPosition = fromIndex + count;
-            if (cacheData.count <= lastPosition) {
-                isFinish = YES;
-                lastPosition = cacheData.count;
-            }
-            NSMutableArray *contactsArr = [NSMutableArray new];
-            for (NSInteger i = fromIndex; i < lastPosition; i++ ) {
-                CNContact *contact = [cacheData objectAtIndex:i];
-                DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
-                if (contact) {
-                    [contactsArr addObject:contactModel];
-                }
-            }
-            [self runOnQueueOrDefault:callBackQueue block:^{
-                completionHandler(contactsArr, nil, isFinish);
-            }];
-        } else {
+        BOOL success = [self cacheDataFromIndex:fromIndex count:count completionHandler:completionHandler callBackQueue:callBackQueue];
+        if (!success) { // Cannot get contacts from cache data and no completion handler were called
             [self addHandlerObjectWithStartIndex:fromIndex count:count handlerBlock:completionHandler callBackQueue:callBackQueue];
         }
-        if (!cacheData || !self.requestDate || [[NSDate date] timeIntervalSinceDate:self.requestDate] > kCacheTime) {
-            NSLog(@"====Go to request====");
+        if (!success || self.requestDate == nil || [[NSDate date] timeIntervalSinceDate:self.requestDate] > kCacheTime) {
             [self requestAllContacts];
         }
     }
@@ -254,8 +221,9 @@
     
     for (NSInteger i = 0; i < self.handlerObjectsArr.count; i++) {
         HandlerObject *handlerObj = self.handlerObjectsArr[i];
-        NSInteger lastIndex = handlerObj.startIndex + handlerObj.count - 1;
-        if ([self recentRequestContactCount] > lastIndex) {
+        NSInteger lastIndex = handlerObj.startIndex + handlerObj.count;
+        if ([self recentRequestContactCount] >= lastIndex) {
+            // If recent contacts can meet the handler object's requirement
             [self runHandlerObject:handlerObj];
             [self.handlerObjectsArr removeObjectAtIndex:i];
             i--;
@@ -278,29 +246,20 @@
     NSInteger lastPosition = handlerObj.startIndex + handlerObj.count;
     if (lastPosition >= [self recentRequestContactCount]) {
         lastPosition = [self recentRequestContactCount];
-        if (!self.isRequesting) {
-            isFinished = YES;
-        }
     }
-    NSMutableArray *contactsArr = [NSMutableArray new];
-    for (NSInteger i = handlerObj.startIndex; i < lastPosition; i++ ) {
-        CNContact *contact = [self recentRequestContactAtIndex:i];
-        DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
-        [contactsArr addObject:contactModel];
-    }
+    NSArray *contactsArr = [self arrayRecentContactsFromIndex:handlerObj.startIndex lastIndex:lastPosition-1];
     if (contactsArr.count == 0) {
-        isFinished = YES;
+        isFinished = YES; // No data more because here requesting were finished
     }
     [self runOnQueueOrDefault:handlerObj.callBackQueue block:^{
         handlerObj.handlerBlock(contactsArr, nil, isFinished);
     }];
 }
 
-#pragma mark - Request
+#pragma mark - Request Data
 
 - (void)requestAllContacts {
     
-    NSLog(@"===Start request====");
     self.isRequesting = YES;
     self.requestDate = [NSDate date];
     self.recentRequestContacts = [NSMutableArray new];
@@ -313,12 +272,13 @@
         [self_weak_ runAndReleaseAllHandlerObjects];
         [self_weak_.recentRequestContacts removeAllObjects];
         self_weak_.recentRequestContacts = nil;
-        NSLog(@"===Request finished====");
     }];
 }
 
 - (void)requestContactsWithCompletionHandler:(void (^)(void))competitionHandler {
-    
+
+    // This request will be run on global concurrent queue
+    // Competition handler block will be executed on Manager Safe Queue
     weakify(self);
     [self runOnQueueOrDefault:nil block:^{
         
@@ -341,6 +301,8 @@
                 [self_weak_.recentRequestContacts addObject:contact];
                 count++;
                 if (count >= kMaxCount) {
+                    // Each time request kMaxCount contacts,
+                    // check and run all handler objects on ManagerSafeQueue
                     count = 0;
                     [self_weak_ runOnManagerSerialQueue:^{
                         [self_weak_ checkAndRunHandlerObjects];
@@ -357,13 +319,32 @@
     }];
 }
 
+- (BOOL)recentContactsFromIndex:(NSUInteger)fromIndex count:(NSInteger)count completionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler callBackQueue:(dispatch_queue_t)callBackQueue {
+    
+    NSUInteger lastPosition = fromIndex + count;
+    if ([self recentRequestContactCount] < lastPosition) {
+        return NO;
+    }
+    NSArray *contactsArr = [self arrayRecentContactsFromIndex:fromIndex lastIndex:lastPosition-1];
+    [self runOnQueueOrDefault:callBackQueue block:^{
+        completionHandler(contactsArr, nil, NO);
+    }];
+    return YES;
+}
+
 - (NSInteger)recentRequestContactCount {
     return self.recentRequestContacts.count;
 }
 
-- (id)recentRequestContactAtIndex:(NSUInteger)index {
-    id obj = [self.recentRequestContacts objectAtIndex:index];
-    return obj;
+- (NSArray *)arrayRecentContactsFromIndex:(NSUInteger)fromIndex lastIndex:(NSUInteger)lastIndex {
+    
+    NSMutableArray *contactsArr = [NSMutableArray new];
+    for (NSInteger i = fromIndex; i <= lastIndex; i++ ) {
+        CNContact *contact = [self.recentRequestContacts objectAtIndex:i];
+        DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
+        [contactsArr addObject:contactModel];
+    }
+    return contactsArr;
 }
 
 - (NSArray *)parsePhonesWithCNContact:(CNContact *)contact {
@@ -379,6 +360,32 @@
 }
 
 #pragma mark - Cache
+
+- (BOOL)cacheDataFromIndex:(NSUInteger)fromIndex count:(NSInteger)count completionHandler:(void (^)(NSArray *contacts, NSError *error, BOOL isFinished))completionHandler callBackQueue:(dispatch_queue_t)callBackQueue {
+    
+    NSArray *cacheContactsArray = [self cacheContactsData];
+    if (cacheContactsArray == nil) {
+        return NO;
+    }
+    BOOL isFinish = NO;
+    NSUInteger lastPosition = fromIndex + count;
+    if (cacheContactsArray.count <= lastPosition) {
+        isFinish = YES;
+        lastPosition = cacheContactsArray.count;
+    }
+    NSMutableArray *contactsArr = [NSMutableArray new];
+    for (NSInteger i = fromIndex; i < lastPosition; i++ ) {
+        CNContact *contact = [cacheContactsArray objectAtIndex:i];
+        DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
+        if (contact) {
+            [contactsArr addObject:contactModel];
+        }
+    }
+    [self runOnQueueOrDefault:callBackQueue block:^{
+        completionHandler(contactsArr, nil, isFinish);
+    }];
+    return YES;
+}
 
 - (void)storeCacheContactsData:(NSArray *)contactsData {
     [self.memoryCache storeObject:contactsData withName:DXContactsCacheKey];

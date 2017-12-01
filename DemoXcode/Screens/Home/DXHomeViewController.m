@@ -15,6 +15,7 @@
 
 @property (strong, nonatomic) UIButton *getContactsButton;
 @property (strong, nonatomic) UIButton *pickContactsButton;
+@property (strong, nonatomic) UIButton *downloadButton;
 
 @end
 
@@ -41,23 +42,34 @@
     
     self.view.backgroundColor = [UIColor whiteColor];
     
-    self.getContactsButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 150, 50)];
-    self.getContactsButton.center = self.view.center;
-    self.getContactsButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
-    [self.getContactsButton addTarget:self action:@selector(touchUpInsideGetContactsButton:) forControlEvents:UIControlEventTouchUpInside];
-    self.getContactsButton.layer.cornerRadius = 8;
-    self.getContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
-    [self.getContactsButton setTitle:@"All Contacts" forState:UIControlStateNormal];
+    UIButton *getContactsButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 150, 50)];
+    getContactsButton.center = self.view.center;
+    getContactsButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+    [getContactsButton addTarget:self action:@selector(touchUpInsideGetContactsButton:) forControlEvents:UIControlEventTouchUpInside];
+    getContactsButton.layer.cornerRadius = 8;
+    getContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
+    [getContactsButton setTitle:@"All Contacts" forState:UIControlStateNormal];
+    self.getContactsButton = getContactsButton;
     
     CGRect buttonFr = self.getContactsButton.frame;
-    self.pickContactsButton = [[UIButton alloc] initWithFrame:CGRectMake(buttonFr.origin.x, buttonFr.origin.y + 80, 150, 50)];
-    self.pickContactsButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
-    [self.pickContactsButton addTarget:self action:@selector(touchUpInsidePickContactsButton:) forControlEvents:UIControlEventTouchUpInside];
-    self.pickContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:100/255.f blue:100/255.f alpha:1];
+    UIButton *pickButton = [[UIButton alloc] initWithFrame:CGRectMake(buttonFr.origin.x, buttonFr.origin.y + 80, 150, 50)];
+    pickButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
+    [pickButton addTarget:self action:@selector(touchUpInsidePickContactsButton:) forControlEvents:UIControlEventTouchUpInside];
+    pickButton.backgroundColor = [UIColor colorWithRed:255/255.f green:100/255.f blue:100/255.f alpha:1];
+    pickButton.layer.cornerRadius = 8;
+    pickButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
+    [pickButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
+    self.pickContactsButton = pickButton;
     
-    self.pickContactsButton.layer.cornerRadius = 8;
-    self.pickContactsButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
-    [self.pickContactsButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
+    buttonFr = self.pickContactsButton.frame;
+    UIButton *downloadButton = [[UIButton alloc] initWithFrame:CGRectMake(buttonFr.origin.x, buttonFr.origin.y + 80, 150, 50)];
+    downloadButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
+    [downloadButton addTarget:self action:@selector(touchUpInsidePickContactsButton:) forControlEvents:UIControlEventTouchUpInside];
+    downloadButton.backgroundColor = [UIColor colorWithRed:255/255.f green:100/255.f blue:100/255.f alpha:1];
+    downloadButton.layer.cornerRadius = 8;
+    downloadButton.backgroundColor = [UIColor colorWithRed:255/255.f green:177/255.f blue:111/255.f alpha:1];
+    [downloadButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
+    
     
     [self.view addSubview:self.getContactsButton];
     [self.view addSubview:self.pickContactsButton];
@@ -97,6 +109,15 @@
     } callBackQueue:dispatch_get_main_queue()];
 }
 
+- (void)displayDownloadViewController {
+    
+    DXInviteFriendsViewController *controlelr = [DXInviteFriendsViewController new];
+    UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
+    [self presentViewController:navControlelr animated:YES completion:^{
+        [self.downloadButton setEnabled:YES];
+    }];
+}
+
 - (void)displayError:(NSError *)error {
     
     NSString *title = error.localizedDescription;
@@ -124,6 +145,12 @@
     
     [self.pickContactsButton setEnabled:NO];
     [self checkAndDisplayContactsPickerViewController];
+}
+
+- (IBAction)touchUpInsideDownloadButton:(id)sender {
+    
+    [self.downloadButton setEnabled:NO];
+    [self displayDownloadViewController];
 }
 
 @end

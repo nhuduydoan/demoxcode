@@ -56,6 +56,9 @@
 		5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C957E951FC2C5DB00B2E6F1 /* AppDelegate.m */; };
 		5C957E9E1FC2C5DB00B2E6F1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */; };
 		5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C957EA31FC2C5DB00B2E6F1 /* main.m */; };
+		5CBF99061FD102AE005DEEC8 /* DXDownloadViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF99051FD102AE005DEEC8 /* DXDownloadViewController.m */; };
+		5CBF990A1FD1087D005DEEC8 /* DXDownloadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF99091FD1087D005DEEC8 /* DXDownloadManager.m */; };
+		5CBF990D1FD10A1E005DEEC8 /* DXDownloadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF990C1FD10A1E005DEEC8 /* DXDownloadModel.m */; };
 		5CC179501FC6CDC500E3D261 /* DXPickContactsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC1794D1FC6CDC500E3D261 /* DXPickContactsViewController.m */; };
 		5CC179541FC6CDE500E3D261 /* DXShowPickedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC179521FC6CDE500E3D261 /* DXShowPickedViewController.m */; };
 		5CC179591FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC179571FC6D9DA00E3D261 /* DXShowPickedCollectionViewCell.m */; };
@@ -172,6 +175,12 @@
 		5C957E9D1FC2C5DB00B2E6F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5C957EA21FC2C5DB00B2E6F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5C957EA31FC2C5DB00B2E6F1 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		5CBF99041FD102AE005DEEC8 /* DXDownloadViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDownloadViewController.h; sourceTree = "<group>"; };
+		5CBF99051FD102AE005DEEC8 /* DXDownloadViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXDownloadViewController.m; sourceTree = "<group>"; };
+		5CBF99081FD1087D005DEEC8 /* DXDownloadManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDownloadManager.h; sourceTree = "<group>"; };
+		5CBF99091FD1087D005DEEC8 /* DXDownloadManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXDownloadManager.m; sourceTree = "<group>"; };
+		5CBF990B1FD10A1E005DEEC8 /* DXDownloadModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDownloadModel.h; sourceTree = "<group>"; };
+		5CBF990C1FD10A1E005DEEC8 /* DXDownloadModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXDownloadModel.m; sourceTree = "<group>"; };
 		5CC1794D1FC6CDC500E3D261 /* DXPickContactsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXPickContactsViewController.m; sourceTree = "<group>"; };
 		5CC1794E1FC6CDC500E3D261 /* DXPickContactsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXPickContactsViewController.h; sourceTree = "<group>"; };
 		5CC179511FC6CDE500E3D261 /* DXShowPickedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXShowPickedViewController.h; sourceTree = "<group>"; };
@@ -244,6 +253,7 @@
 		5C1E90791FC2E4E600ADC5D6 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				5CBF99031FD102A1005DEEC8 /* Download */,
 				5C27EC4A1FC57D290065E6B6 /* ContactsPicker */,
 				5C1E90841FC2E55800ADC5D6 /* Contact */,
 				5C1E90851FC2E55800ADC5D6 /* Home */,
@@ -403,6 +413,7 @@
 				5C47F3451FD0079F00680C58 /* SVPullToRefresh */,
 				5C27EBE61FC575B20065E6B6 /* Nimbus */,
 				5C576A9F1FC3DFDD00FFFB09 /* ContactsManager */,
+				5CBF99071FD1086D005DEEC8 /* DownloadManager */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -478,6 +489,26 @@
 				5C957EA31FC2C5DB00B2E6F1 /* main.m */,
 			);
 			path = DemoXcode;
+			sourceTree = "<group>";
+		};
+		5CBF99031FD102A1005DEEC8 /* Download */ = {
+			isa = PBXGroup;
+			children = (
+				5CBF99041FD102AE005DEEC8 /* DXDownloadViewController.h */,
+				5CBF99051FD102AE005DEEC8 /* DXDownloadViewController.m */,
+			);
+			path = Download;
+			sourceTree = "<group>";
+		};
+		5CBF99071FD1086D005DEEC8 /* DownloadManager */ = {
+			isa = PBXGroup;
+			children = (
+				5CBF99081FD1087D005DEEC8 /* DXDownloadManager.h */,
+				5CBF99091FD1087D005DEEC8 /* DXDownloadManager.m */,
+				5CBF990B1FD10A1E005DEEC8 /* DXDownloadModel.h */,
+				5CBF990C1FD10A1E005DEEC8 /* DXDownloadModel.m */,
+			);
+			path = DownloadManager;
 			sourceTree = "<group>";
 		};
 		5CF46FC71FC7C11F00409E1A /* Collections */ = {
@@ -592,6 +623,7 @@
 				5C27EC421FC576010065E6B6 /* NIRadioGroupController.m in Sources */,
 				5C27EC251FC575F30065E6B6 /* NINonEmptyCollectionTesting.m in Sources */,
 				5C61CE8F1FC91284002F5A32 /* DXViewController.m in Sources */,
+				5CBF99061FD102AE005DEEC8 /* DXDownloadViewController.m in Sources */,
 				5C576A9D1FC3B17600FFFB09 /* DXContactModel.m in Sources */,
 				5C27EC451FC576010065E6B6 /* NICellFactory.m in Sources */,
 				5C27EC1E1FC575F30065E6B6 /* NIViewRecycler.m in Sources */,
@@ -611,12 +643,14 @@
 				5CF46FD61FC7C11F00409E1A /* NICollectionViewModel.m in Sources */,
 				5CF46FD51FC7C11F00409E1A /* NICollectionViewCellFactory.m in Sources */,
 				5C27EC291FC575F30065E6B6 /* NIError.m in Sources */,
+				5CBF990D1FD10A1E005DEEC8 /* DXDownloadModel.m in Sources */,
 				5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */,
 				5CF46FD41FC7C11F00409E1A /* NICollectionViewActions.m in Sources */,
 				5CF46FD31FC7C11F00409E1A /* NIMutableCollectionViewModel.m in Sources */,
 				5CE0D1BC1FCBFF4700CCE134 /* DXApplication.m in Sources */,
 				5C27EC1C1FC575F30065E6B6 /* NINetworkActivity.m in Sources */,
 				5C27EC241FC575F30065E6B6 /* NIState.m in Sources */,
+				5CBF990A1FD1087D005DEEC8 /* DXDownloadManager.m in Sources */,
 				5C1E908E1FC2E5FC00ADC5D6 /* DXContactViewController.m in Sources */,
 				5C1D55911FC65D3D0059F452 /* DXContactTableViewCell.m in Sources */,
 				5C1D55971FC65D6D0059F452 /* DXPickContactTableViewCell.m in Sources */,

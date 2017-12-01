@@ -233,6 +233,7 @@
     [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
         [self_weak_.originalData addObjectsFromArray:contacts];
         [self_weak_.pickContactsViewController insertNewData:contacts];
+//        [self_weak_.pickContactsViewController reloadWithData:self.originalData];
         
     } callBackQueue:dispatch_get_main_queue() multiCallBack:YES];
 }

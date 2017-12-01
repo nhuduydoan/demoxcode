@@ -244,7 +244,7 @@
          resArr = [self.originalData filteredArrayUsingPredicate:compoundPredicate];
     }
     
-    self.displayData = resArr; //[sApplication arrangeNonSectionedWithData:resArr];
+    self.displayData = [sApplication arrangeNonSectionedWithData:resArr];
 }
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
