@@ -15,5 +15,6 @@
 #define weakify(_var_) typeof(_var_) __weak _var_ ## _weak_ = _var_
 
 #import "DXApplication.h"
+#import "DXImageManager.h"
 
 #endif /* PrefixHeader_pch */

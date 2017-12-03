@@ -67,10 +67,20 @@
 
 #pragma mark - Public
 
-- (void)displayContactModel:(DXContactModel *)model {
+- (void)displayContactModel:(DXContactModel *)contactModel {
     
     [self clearOldData];
-    self.avatarImgView.image = model.avatar;
+    
+    if (contactModel.avatar == nil || contactModel.avatar.size.width > 200) {
+        weakify(self);
+        [sImageManager avatarForCNContact:contactModel withCompletionHandler:^(UIImage *iamge) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self_weak_.avatarImgView.image = contactModel.avatar;
+            });
+        }];
+    } else {
+        self.avatarImgView.image = contactModel.avatar;
+    }
 }
 
 - (BOOL)shouldUpdateCellWithObject:(id)object {

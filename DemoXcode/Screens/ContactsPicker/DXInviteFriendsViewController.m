@@ -73,7 +73,7 @@
     mainLabel.text = @"Chọn bạn";
     
     NSString *subTitle = @"0/5";
-    UIImage *subImage = [sApplication imageFromString:subTitle];
+    UIImage *subImage = [sImageManager titleImageFromString:subTitle];
     CGFloat width = subImage.size.width * 0.6;
     CGFloat height = subImage.size.height * 0.6;
     UIImageView *subTitleView = [[UIImageView alloc] initWithImage:subImage];
@@ -90,7 +90,7 @@
 - (void)updateTitleForController {
     
     NSString *subTitle = [NSString stringWithFormat:@"%zd/5", self.showPickedViewController.pickedModels.count];
-    UIImage *subTitleImage =  [sApplication imageFromString:subTitle];
+    UIImage *subTitleImage =  [sImageManager titleImageFromString:subTitle];
     CGRect rect = self.navigationItem.titleView.bounds;
     CGFloat width = subTitleImage.size.width * 0.6;
     CGFloat height = subTitleImage.size.height * 0.6;
@@ -230,12 +230,25 @@
     
     [self.originalData removeAllObjects];
     weakify(self);
-    [sContactMngr getAllComtactsWithCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
-        [self_weak_.originalData addObjectsFromArray:contacts];
-        [self_weak_.pickContactsViewController insertNewData:contacts];
-//        [self_weak_.pickContactsViewController reloadWithData:self.originalData];
+    [self loadMoreDataFromIndex:0 withCompletionHandler:^(NSError *error) {
+        [self_weak_.pickContactsViewController reloadWithData:self_weak_.originalData];
+    }];
+}
+
+- (void)loadMoreDataFromIndex:(NSUInteger)fromIndex withCompletionHandler:(void (^)(NSError *error))completionHandler {
+    weakify(self);
+    [sContactMngr loadMoreContactsFromIndex:fromIndex count:50 withCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error, BOOL isFinished) {
+        if (contacts.count) {
+            [self_weak_.originalData addObjectsFromArray:contacts];
+        }
+        if (isFinished) {
+            completionHandler(error);
+        } else {
+            [self_weak_ loadMoreDataFromIndex:self_weak_.originalData.count withCompletionHandler:completionHandler];
+        }
         
-    } callBackQueue:dispatch_get_main_queue() multiCallBack:YES];
+    } callBackQueue:dispatch_get_main_queue()];
+    
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {
