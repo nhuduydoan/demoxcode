@@ -162,6 +162,7 @@
             [self requestAllContacts];
             
         } else {
+            
             // Get saved contacts and call handler block
             NSUInteger lastPosition = fromIndex + count;
             BOOL isFinished = NO;
