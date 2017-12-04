@@ -184,28 +184,6 @@
     } callBackQueue:dispatch_get_main_queue()];
 }
 
-- (void)insertData:(NSArray *)data {
-    if (data.count == 0) {
-        return;
-    }
-    
-    [self.originalData addObjectsFromArray:data];
-    [self filterWithKeyword:self.searchString];
-    
-    NSMutableArray *indexPaths = [NSMutableArray new];
-    for (id obj in data) {
-        NSInteger index = [self.displayData indexOfObject:obj];
-        if (index != NSNotFound) {
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-            [indexPaths addObject:indexPath];
-        }
-    }
-    
-    if (indexPaths.count > 0) {
-        [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
-    }
-}
-
 - (void)filterWithKeyword:(NSString *)keyword {
     NSArray *resArr;
     if (keyword.length == 0 || self.originalData.count == 0) {

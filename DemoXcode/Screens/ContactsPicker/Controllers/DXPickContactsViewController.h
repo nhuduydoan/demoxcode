@@ -26,8 +26,6 @@
 
 - (void)reloadWithData:(NSArray *)data;
 
-- (void)insertNewData:(NSArray *)data;
-
 - (void)didSelectModel:(id)model;
 
 - (void)deSelectModel:(id)model;
