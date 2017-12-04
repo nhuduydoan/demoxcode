@@ -7,6 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
+@class DXDownloadManager, DXDownloadModel;
+
+@protocol DXDownloadManagerDelegate <NSObject>
+
+@end
+
+#define sDownloadManager [DXDownloadManager sharedInstance]
 
 @interface DXDownloadManager : NSObject
 
@@ -25,5 +32,16 @@
  @return : alway nil
  */
 - (instancetype)init NS_UNAVAILABLE;
+
+#pragma mark - Download
+
+- (void)downloadWithModel:(DXDownloadModel *)model;
+
+#pragma mark - Delegate
+
+
+- (void)addDelegate:(id<DXDownloadManagerDelegate>)delegate;
+
+- (void)removeDelegate:(id<DXDownloadManagerDelegate>)delegate;
 
 @end

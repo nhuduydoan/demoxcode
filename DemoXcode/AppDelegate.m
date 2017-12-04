@@ -9,6 +9,8 @@
 #import "AppDelegate.h"
 #import "DXHomeViewController.h"
 #import "DXViewController.h"
+#import "DXFilesViewController.h"
+#import "DXDownloadViewController.h"
 
 @interface AppDelegate ()
 
@@ -22,13 +24,34 @@
     
     CGRect screen =  [UIScreen mainScreen].bounds;
     self.window = [[UIWindow alloc] initWithFrame:screen];
-    DXHomeViewController *homeViewController = [DXHomeViewController new];
-    UINavigationController *navHome = [[UINavigationController alloc] initWithRootViewController:homeViewController];
-    self.window.rootViewController = navHome;
+    [self setupRootViewController];
     [self.window makeKeyAndVisible];
     return YES;
 }
 
+- (void)setupRootViewController {
+    
+    UITabBarController *tabbarController = [[UITabBarController alloc] init];
+    [tabbarController setViewControllers:[self viewControllers]];
+    self.window.rootViewController = tabbarController;
+}
+
+- (NSArray *)viewControllers {
+    
+    DXHomeViewController *contactsViewController = [DXHomeViewController new];
+    contactsViewController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Contacts" image:[UIImage imageNamed:@"tab_contact"] selectedImage:[UIImage imageNamed:@"tab_contact"]];
+    UINavigationController *navContacts = [[UINavigationController alloc] initWithRootViewController:contactsViewController];
+    
+    DXDownloadViewController *downloadsController = [[DXDownloadViewController alloc] init];
+    downloadsController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Downloads" image:[UIImage imageNamed:@"tab_download"] selectedImage:[UIImage imageNamed:@"tab_download"]];
+    UINavigationController *navDownloads = [[UINavigationController alloc] initWithRootViewController:downloadsController];
+    
+    DXDownloadViewController *filesController = [[DXDownloadViewController alloc] init];
+    filesController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Files" image:[UIImage imageNamed:@"tab_file"] selectedImage:[UIImage imageNamed:@"tab_file"]];
+    UINavigationController *navFiles = [[UINavigationController alloc] initWithRootViewController:filesController];
+    
+    return @[navContacts, navDownloads, navFiles];
+}
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

@@ -75,17 +75,17 @@
     
     weakify(self);
     dispatch_async(avatarQueue, ^{
-        UIImage *img = [self_weak_.imagesCache objectWithName:contact.identifier];
+        UIImage *img = [selfWeak.imagesCache objectWithName:contact.identifier];
         if (img == nil) {
             if (contact.avatar == nil) {
-                img = [self_weak_ avatarImageFromFullName:contact.fullName];
+                img = [selfWeak avatarImageFromFullName:contact.fullName];
             } else if (contact.avatar.size.width > 200) {
-                img = [self_weak_ avatarImageFromOriginalImage:contact.avatar];
+                img = [selfWeak avatarImageFromOriginalImage:contact.avatar];
             }
         }
         
         [contact updateAvatar:img];
-        [self_weak_.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+        [selfWeak.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
         if (completionHander) {
             completionHander(img);
         }

@@ -11,7 +11,6 @@
 #import "DXContactModel.h"
 #import "DXContactTableViewCell.h"
 #import "DXContactsDetailViewController.h"
-#import "SVPullToRefresh.h"
 
 #define ContactTableViewCell @"ContactTableViewCell"
 
@@ -39,8 +38,9 @@
     
     self.originalData = [NSMutableArray new];
     [self setUpNavigationItems];
-    [self setUpNoResultLabel];
     [self setUpTableView];
+    [self setUpNoResultLabel];
+    [self reloadData];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -51,7 +51,6 @@
 #pragma mark - SetUp View
 
 -(void)viewDidLayoutSubviews {
-    
     if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
         [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 60, 0, 0)];
     }
@@ -62,18 +61,15 @@
 }
 
 - (void)setUpNavigationItems {
-    
     self.title = @"All Contacts";
-    
+    self.navigationController.navigationBar.translucent = NO;
     self.closeBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(touchUpCloseBarButtonItem)];
-    self.navigationItem.leftBarButtonItem = self.closeBarButtonItem;
-    
     self.searchBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"item_search"] style:UIBarButtonItemStylePlain target:self action:@selector(touchUpSearchBarButtonItem)];
+    self.navigationItem.leftBarButtonItem = self.closeBarButtonItem;
     self.navigationItem.rightBarButtonItem = self.searchBarButtonItem;
 }
 
 - (void)setUpTableView {
-    
     self.view.backgroundColor = [UIColor whiteColor];
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds];
     self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -85,25 +81,22 @@
     self.tableView.separatorColor = [UIColor colorWithWhite:0.85 alpha:1];
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];
-    weakify(self);
-    [self.tableView addPullToRefreshWithActionHandler:^{
-        [self_weak_ reloadData];
-    }];
-    [self_weak_ reloadData];
-    
-    [self.tableView addInfiniteScrollingWithActionHandler:^{
-        [self_weak_ loadMoreData];
-    }];
+    [self.tableView reloadData];
 }
 
 - (void)setUpNoResultLabel {
-    
-    self.noResultLabel.textColor = [UIColor colorWithWhite:0.5 alpha:1];
-    self.noResultLabel.hidden = YES;
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 100)];
+    label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+    label.center = self.view.center;
+    label.textColor = [UIColor colorWithWhite:0.5 alpha:1];
+    label.text = @"No Result";
+    label.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:label];
+    label.hidden = YES;
+    self.noResultLabel = label;
 }
 
 - (UISearchBar *)setUpSearchBar {
-    
     UISearchBar *searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 44)];
     searchBar.showsCancelButton = YES;
     searchBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -120,12 +113,11 @@
 }
 
 - (void)displayNoResultlabel:(BOOL)display {
-    
     [self.noResultLabel setHidden:!display];
+    self.searchBar.userInteractionEnabled = !display;
 }
 
 - (void)displaySearchBar {
-    
     if (!self.searchBar) {
         self.searchBar = [self setUpSearchBar];
     }
@@ -144,7 +136,6 @@
 }
 
 - (void)removeSearchBar {
-    
     if ([self.searchBar isFirstResponder]) {
         [self.searchBar resignFirstResponder];
     }
@@ -159,58 +150,41 @@
 #pragma mark - Action
 
 - (void)touchUpCloseBarButtonItem {
-    
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)touchUpSearchBarButtonItem {
-    
     [self displaySearchBar];
 }
 
 #pragma mark  - Private
 
 - (void)reloadData {
-    
     [self displayNoResultlabel:NO];
     [self.searchBar setText:nil];
     [self.originalData removeAllObjects];
     self.displayData = [NSArray new];
     [self.tableView reloadData];
     weakify(self);
-    [sContactMngr loadMoreContactsFromIndex:0 count:50 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
+    [sContactMngr getAllContactsWithCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error) {
         if (contacts.count) {
-            [self_weak_.originalData addObjectsFromArray:contacts];
-            [self_weak_ filterWithKeyword:self_weak_.searchString];
-            [self_weak_.tableView reloadData];
-        }
-        if (self_weak_.originalData.count == 0) {
-            [self_weak_ displayNoResultlabel:YES];
+            [selfWeak.originalData addObjectsFromArray:contacts];
+            [selfWeak filterWithKeyword:selfWeak.searchString];
+            [selfWeak.tableView reloadData];
+            [selfWeak displayNoResultlabel:NO];
         } else {
-            [self_weak_ displayNoResultlabel:NO];
+            [selfWeak displayNoResultlabel:YES];
+            
         }
         if(error) {
-            self_weak_.noResultLabel.text = error.localizedFailureReason;
+            selfWeak.noResultLabel.text = error.localizedFailureReason;
         } else {
-            self_weak_.noResultLabel.text = @"No result";
+            selfWeak.noResultLabel.text = @"No result";
         }
-        [self_weak_.tableView.pullToRefreshView stopAnimating];
-        [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
-    } callBackQueue:dispatch_get_main_queue()];
-}
-
--  (void)loadMoreData {
-    
-    weakify(self);
-    [sContactMngr loadMoreContactsFromIndex:self.originalData.count count:20 withCompletionHandler:^(NSArray *contacts, NSError *error, BOOL isFinished) {
-        [self_weak_ insertData:contacts];
-        [self_weak_.tableView.infiniteScrollingView stopAnimating];
-        [self_weak_.tableView.infiniteScrollingView setEnabled:!isFinished];
     } callBackQueue:dispatch_get_main_queue()];
 }
 
 - (void)insertData:(NSArray *)data {
-    
     if (data.count == 0) {
         return;
     }
@@ -233,7 +207,6 @@
 }
 
 - (void)filterWithKeyword:(NSString *)keyword {
-    
     NSArray *resArr;
     if (keyword.length == 0 || self.originalData.count == 0) {
         resArr = self.originalData.copy;
@@ -248,7 +221,6 @@
 }
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
-    
     DXContactsDetailViewController *controller = [[DXContactsDetailViewController alloc] initWithContactModell:contactModel];
     [self.navigationController pushViewController:controller animated:YES];
 }
@@ -260,7 +232,6 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     DXContactTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ContactTableViewCell];
     DXContactModel *contactModel = [self.displayData objectAtIndex:indexPath.row];
     [cell displayContactModel:contactModel];
@@ -270,7 +241,6 @@
 #pragma mark - Tableview Delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     if (self.navigationItem.titleView == self.searchBar && self.searchString.length == 0) {
         [self removeSearchBar];
     } else {
@@ -285,7 +255,6 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    
     if (self.navigationItem.titleView == self.searchBar && self.searchString.length == 0) {
         [self removeSearchBar];
     } else {
@@ -298,14 +267,12 @@
 #pragma mark - UISearchBar Delegate
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    
     self.searchString = searchText;
     [self filterWithKeyword:self.searchString];
     [self.tableView reloadData];
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-    
     [self removeSearchBar];
 }
 

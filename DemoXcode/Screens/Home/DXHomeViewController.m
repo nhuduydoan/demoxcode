@@ -24,7 +24,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    self.title = @"Get Contact";
     [self setUpView];
 }
 
@@ -84,11 +83,11 @@
         if (isAccess) {
             DXContactViewController *controlelr = [DXContactViewController new];
             UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
-            [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
+            [selfWeak presentViewController:navControlelr animated:YES completion:nil];
         } else if (error) {
-            [self_weak_ displayError:error];
+            [selfWeak displayError:error];
         }
-        [self_weak_.getContactsButton setEnabled:YES];
+        [selfWeak.getContactsButton setEnabled:YES];
     } callBackQueue:dispatch_get_main_queue()];
 }
 
@@ -100,11 +99,11 @@
             if (isAccess) {
                 DXInviteFriendsViewController *controlelr = [DXInviteFriendsViewController new];
                 UINavigationController *navControlelr = [[UINavigationController alloc] initWithRootViewController:controlelr];
-                [self_weak_ presentViewController:navControlelr animated:YES completion:nil];
+                [selfWeak presentViewController:navControlelr animated:YES completion:nil];
             } else if (error) {
-                [self_weak_ displayError:error];
+                [selfWeak displayError:error];
             }
-            [self_weak_.pickContactsButton setEnabled:YES];
+            [selfWeak.pickContactsButton setEnabled:YES];
         });
     } callBackQueue:dispatch_get_main_queue()];
 }

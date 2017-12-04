@@ -17,6 +17,7 @@
 
 @property (strong, nonatomic) UIView *headerView;
 @property (strong, nonatomic) UIView *contentView;
+@property (strong, nonatomic) UILabel *noResultLabel;
 
 @property (strong, nonatomic) UIBarButtonItem *closeBarButtonItem;
 @property (strong, nonatomic) UIBarButtonItem *inviteBarButtonItem;
@@ -53,7 +54,6 @@
 #pragma mark - SetUp View
 
 - (void)setupNavigationBarItems {
-    
     self.navigationController.navigationBar.translucent = NO;
     self.closeBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Close" style:UIBarButtonItemStylePlain target:self action:@selector(touchUpCloseBarButtonItem)];
     self.navigationItem.leftBarButtonItem = self.closeBarButtonItem;
@@ -64,7 +64,6 @@
 }
 
 - (void)setupTitleView {
-    
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 414, 44)];
     UILabel *mainLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 8, 414, 18)];
     mainLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -88,7 +87,6 @@
 }
 
 - (void)updateTitleForController {
-    
     NSString *subTitle = [NSString stringWithFormat:@"%zd/5", self.showPickedViewController.pickedModels.count];
     UIImage *subTitleImage =  [sImageManager titleImageFromString:subTitle];
     CGRect rect = self.navigationItem.titleView.bounds;
@@ -111,7 +109,6 @@
 }
 
 - (void)setupHeaderView {
-    
     self.view.backgroundColor = [UIColor whiteColor];
     self.headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
     self.headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -123,7 +120,6 @@
 }
 
 - (void)setUpSearchBar {
-    
     UISearchBar *searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, self.headerView.bounds.size.height - 40, self.view.bounds.size.width, 40)];
     searchBar.delegate = self;
     searchBar.backgroundImage = [UIImage new];
@@ -140,17 +136,28 @@
 }
 
 - (void)setUpContentView {
-    
     self.contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, self.view.bounds.size.width, self.view.bounds.size.height - 40)];
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:self.contentView];
     
     [self setupPickContactsViewController];
     [self setupSearchResultViewController];
+    [self setUpNoResultLabel];
+}
+
+- (void)setUpNoResultLabel {
+    UILabel *label = [[UILabel alloc] initWithFrame:self.contentView.bounds];
+    label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    label.center = self.contentView.center;
+    label.textColor = [UIColor colorWithWhite:0.5 alpha:1];
+    label.text = @"No Result";
+    label.textAlignment = NSTextAlignmentCenter;
+    [self.contentView addSubview:label];
+    label.hidden = YES;
+    self.noResultLabel = label;
 }
 
 - (void)setupShowPickedViewController {
-    
     self.showPickedViewController = [DXShowPickedViewController new];
     self.showPickedViewController.delegate = self;
     self.showPickedViewController.view.frame = CGRectMake(0, 0, 0, 0);
@@ -158,7 +165,6 @@
 }
 
 - (void)setupPickContactsViewController {
-    
     DXPickContactsViewController *controller = [[DXPickContactsViewController alloc] init];
     controller.delegate = self;
     [self addChildViewController:controller];
@@ -171,14 +177,12 @@
 }
 
 - (void)setupSearchResultViewController {
-    
     DXResultSearchViewController *controller = [[DXResultSearchViewController alloc] init];
     controller.delegate = self;
     self.searchResultViewController = controller;
 }
 
 - (void)displaySearchResultViewController:(BOOL)isShow {
-    
     if (isShow) {
         [self addChildViewController:self.searchResultViewController];
         [self.searchResultViewController didMoveToParentViewController:self];
@@ -194,7 +198,6 @@
 }
 
 - (void)displayShowPickedViewController:(BOOL)isShow {
-    
     CGRect headerFrame = self.headerView.frame;
     CGRect contentFrame = self.contentView.frame;
     if (isShow) {
@@ -224,35 +227,33 @@
     }];
 }
 
+- (void)displayNoResultlabel:(BOOL)display {
+    self.noResultLabel.hidden = !display;
+    [self.headerView setHidden:display];
+}
+
 #pragma mark - Private
 
 - (void)reloadData {
-    
     [self.originalData removeAllObjects];
     weakify(self);
-    [self loadMoreDataFromIndex:0 withCompletionHandler:^(NSError *error) {
-        [self_weak_.pickContactsViewController reloadWithData:self_weak_.originalData];
-    }];
-}
-
-- (void)loadMoreDataFromIndex:(NSUInteger)fromIndex withCompletionHandler:(void (^)(NSError *error))completionHandler {
-    weakify(self);
-    [sContactMngr loadMoreContactsFromIndex:fromIndex count:50 withCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error, BOOL isFinished) {
-        if (contacts.count) {
-            [self_weak_.originalData addObjectsFromArray:contacts];
-        }
-        if (isFinished) {
-            completionHandler(error);
+    [sContactMngr getAllContactsWithCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error) {
+        if (contacts.count > 0) {
+            [selfWeak.originalData addObjectsFromArray:contacts];
+            [selfWeak displayNoResultlabel:NO];
         } else {
-            [self_weak_ loadMoreDataFromIndex:self_weak_.originalData.count withCompletionHandler:completionHandler];
+            [selfWeak displayNoResultlabel:YES];
         }
-        
+        [selfWeak.pickContactsViewController reloadWithData:selfWeak.originalData];
+        if(error) {
+            selfWeak.noResultLabel.text = error.localizedFailureReason;
+        } else {
+            selfWeak.noResultLabel.text = @"No result";
+        }
     } callBackQueue:dispatch_get_main_queue()];
-    
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {
-    
     if (keyword.length == 0) {
         [self displaySearchResultViewController:NO];
         return;
@@ -274,7 +275,6 @@
 }
 
 - (void)selectModel:(id)model {
-    
     [self.showPickedViewController addPickedModel:model];
     if (self.showPickedViewController.pickedModels.count == 1) {
         [self displayShowPickedViewController:YES];
@@ -284,7 +284,6 @@
 }
 
 - (void)deSelectModel:(id)model {
-    
     [self.showPickedViewController removePickedModel:model];
     if (self.showPickedViewController.pickedModels.count == 0) {
         [self displayShowPickedViewController:NO];
@@ -294,7 +293,6 @@
 }
 
 - (void)hideKeyBoard {
-    
     if ([self.searchBar isFirstResponder]) {
         [self.searchBar resignFirstResponder];
     }
@@ -303,18 +301,16 @@
 #pragma mark - Action
 
 - (void)touchUpCloseBarButtonItem {
-    
     [self hideKeyBoard];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)touchUpInviteButton {
-    
     [self hideKeyBoard];
     
     NSArray *selectedFriends = [self.showPickedViewController pickedModels];
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Your selected friends" message:@"" preferredStyle:UIAlertControllerStyleActionSheet];
-    
+
     for (DXContactModel *contact in selectedFriends) {
         UIAlertAction *action = [UIAlertAction actionWithTitle:contact.fullName style:UIAlertActionStyleDefault handler:nil];
         [alertController addAction:action];
@@ -338,7 +334,6 @@
 }
 
 - (BOOL)pickContactsViewController:(UIViewController *)controller didSelectModel:(id)model {
-    
     if (self.showPickedViewController.pickedModels.count >= 5) {
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Thông báo" message:@"Bạn không được chọn quá 5 người" preferredStyle:UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDestructive handler:nil]];
@@ -357,7 +352,6 @@
 }
 
 - (void)pickContactsViewController:(UIViewController *)controller didDeSelectModel:(id)model {
-    
     [self deSelectModel:model];
     if (controller == self.pickContactsViewController) {
         [self.searchResultViewController deSelectModel:model];
@@ -374,7 +368,6 @@
 #pragma mark - DXShowPickedViewControllerDelegate
 
 - (void)showPickedViewController:(DXShowPickedViewController *)controller didSelectModel:(id)model {
-    
     if (self.searchResultViewController.view.window) {
         [self.searchResultViewController scrollToContactModel:model];
     } else {

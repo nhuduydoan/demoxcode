@@ -80,8 +80,8 @@
         }
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             id model = [object userInfo];
-            if ([self_weak_.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
-                BOOL isSelected = [self_weak_.delegate pickContactsViewController:self didSelectModel:model];
+            if ([selfWeak.delegate respondsToSelector:@selector(pickContactsViewController:didSelectModel:)]) {
+                BOOL isSelected = [selfWeak.delegate pickContactsViewController:selfWeak didSelectModel:model];
                 return !isSelected;
             }
             return YES;

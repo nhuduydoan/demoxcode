@@ -89,7 +89,7 @@
         weakify(self);
         [sImageManager avatarForCNContact:contactModel withCompletionHandler:^(UIImage *iamge) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                self_weak_.avatarImgView.image = contactModel.avatar;
+                selfWeak.avatarImgView.image = contactModel.avatar;
             });
         }];
     } else {

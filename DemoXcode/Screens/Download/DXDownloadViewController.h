@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface DXDownloadViewController : UIViewController
+@interface DXDownloadViewController : UITableViewController
 
 @end

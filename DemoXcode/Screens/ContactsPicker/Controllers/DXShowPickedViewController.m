@@ -62,8 +62,8 @@
     for (id obj in insertedData) {
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             id model = [object userInfo];
-            if ([self_weak_.delegate respondsToSelector:@selector(showPickedViewController:didSelectModel:)]) {
-                [self_weak_.delegate showPickedViewController:self_weak_ didSelectModel:model];
+            if ([selfWeak.delegate respondsToSelector:@selector(showPickedViewController:didSelectModel:)]) {
+                [selfWeak.delegate showPickedViewController:selfWeak didSelectModel:model];
             }
             return NO;
         }];
