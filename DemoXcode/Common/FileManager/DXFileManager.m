@@ -8,11 +8,13 @@
 
 #import "DXFileManager.h"
 #import "DXDownloadModel.h"
+#import "DXFileModel.h"
 
 #define Files @"Files"
 
 @interface DXFileManager ()
 
+@property (strong, nonatomic) NSMutableSet *delegates;
 @property (strong, nonatomic) NSString *dataPath;
 @end
 
@@ -32,6 +34,7 @@
     
     self = [super init];
     if (self) {
+        _delegates =  (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
         [self setupDataFolder];
     }
     return self;
@@ -92,6 +95,16 @@
     }
     
     return path;
+}
+
+#pragma mark - Delegate
+
+- (void)addDelegate:(id<DXFileManagerDelegate>)delegate {
+    [self.delegates addObject:delegate];
+}
+
+- (void)removeDelegate:(id<DXFileManagerDelegate>)delegate {
+    [self.delegates removeObject:delegate];
 }
 
 @end

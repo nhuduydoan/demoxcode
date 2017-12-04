@@ -13,4 +13,6 @@
 @property (strong, nonatomic, readonly) NSString *fileName;
 @property (strong, nonatomic, readonly) NSString *targetPath;
 
+- (id)initWithFileName:(NSString *)fileName targetPath:(NSString *)targetPath;
+
 @end

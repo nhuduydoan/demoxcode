@@ -38,7 +38,6 @@
 #pragma mark - SetUp View
 
 - (void)setUpView {
-    
     [self setupAvatarView];
     [self setupChildLabels];
 }
@@ -55,7 +54,6 @@
 }
 
 - (void)setupChildLabels {
-    
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(61, 0, self.bounds.size.width - (16 + 61), 32)];
     self.titleLabel.clipsToBounds = YES;
     self.titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
@@ -68,11 +66,9 @@
     [self.contentView addSubview:self.subLabel];
 }
 
-
 #pragma mark - Private
 
 - (void)clearOldData {
-    
     self.avatarImgView.image = nil;
     self.titleLabel.text = @"";
     self.subLabel.text = @"";
@@ -84,7 +80,6 @@
 #pragma mark - Public
 
 - (void)displayContactModel:(DXContactModel *)contactModel {
-    
     [self clearOldData];
     self.titleLabel.text = contactModel.fullName;
     

@@ -11,11 +11,14 @@
 
 @protocol DXDownloadManagerDelegate <NSObject>
 
+- (void)downloadManager:(DXDownloadManager *)downloaderManager downloadDidFinish:(NSURL *)filePath;
+
 @end
 
 #define sDownloadManager [DXDownloadManager sharedInstance]
 
 @interface DXDownloadManager : NSObject
+
 
 /**
  Alloc and init and manager Object for using

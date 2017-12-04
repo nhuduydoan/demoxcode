@@ -73,8 +73,6 @@
         if ([extension length] > 0) {
             fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
         }
-        
-        
         NSString *filePath = [sFileManager generateNewPathForTargetPath:model.targetPath fileName:fileName];return [NSURL URLWithString:filePath];
     };
     
@@ -84,6 +82,7 @@
             [[NSFileManager defaultManager] removeItemAtURL:filePath error:nil];
         } else {
             NSLog(@"File downloaded to: %@", filePath);
+            [self callDelegateDownloadDidfinish:filePath.copy];
         }
     };
     
@@ -104,13 +103,20 @@
 
 #pragma mark - Delegate
 
-
 - (void)addDelegate:(id<DXDownloadManagerDelegate>)delegate {
     [self.delegates addObject:delegate];
 }
 
 - (void)removeDelegate:(id<DXDownloadManagerDelegate>)delegate {
     [self.delegates removeObject:delegate];
+}
+
+- (void)callDelegateDownloadDidfinish:(NSURL *)filePath {
+    for (id<DXDownloadManagerDelegate> delegate in self.delegates) {
+        if ([delegate respondsToSelector:@selector(downloadManager:downloadDidFinish:)]) {
+            [delegate downloadManager:self downloadDidFinish:filePath];
+        }
+    }
 }
 
 @end

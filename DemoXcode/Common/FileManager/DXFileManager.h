@@ -36,8 +36,16 @@
  */
 - (instancetype)init NS_UNAVAILABLE;
 
+#pragma mark - Files
+
 - (NSString *)rootFolderTargetPath;
 
 - (NSString *)generateNewPathForTargetPath:(NSString *)targetPath fileName:(NSString *)fileName;
+
+#pragma mark - Delegate
+
+- (void)addDelegate:(id<DXFileManagerDelegate>)delegate;
+
+- (void)removeDelegate:(id<DXFileManagerDelegate>)delegate;
 
 @end
