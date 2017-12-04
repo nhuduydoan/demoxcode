@@ -252,7 +252,7 @@
     NSMutableArray *contactsArr = [NSMutableArray new];
     for (NSInteger i = fromIndex; i < toIndex; i++ ) {
         CNContact *contact = [self.recentRequestContacts objectAtIndex:i];
-        DXContactModel *contactModel = [sApplication parseContactModelWithCNContact:contact];
+        DXContactModel *contactModel = [sApplication parseContactModelFromCNContact:contact];
         [contactsArr addObject:contactModel];
     }
     return contactsArr;

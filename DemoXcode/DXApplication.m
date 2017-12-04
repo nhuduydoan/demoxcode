@@ -30,7 +30,7 @@
 
 #pragma mark - Sort Contacts
 
-- (NSArray *)sectionsArraySectionedWithData:(NSArray *)data {
+- (NSArray<NSArray *> *)sectionsArraySectionedWithData:(NSArray<DXContactModel *> *)data {
     
     if (data.count == 0) {
         return nil;
@@ -58,7 +58,7 @@
     return sectionsArr;
 }
 
-- (NSArray *)arrangeSectionedWithData:(NSArray *)data {
+- (NSArray *)arrangeSectionedWithData:(NSArray<DXContactModel *> *)data {
     
     if (data.count == 0) {
         return data;
@@ -72,7 +72,7 @@
     return arrangedArray;
 }
 
-- (NSArray *)arrangeNonSectionedWithData:(NSArray *)data {
+- (NSArray *)arrangeNonSectionedWithData:(NSArray<DXContactModel *> *)data {
     
     if (data.count == 0) {
         return [NSMutableArray new];
@@ -92,7 +92,7 @@
     return arrangedArray;
 }
 
-- (NSArray *)sortArrayFromArray:(NSArray *)array {
+- (NSArray<DXContactModel *> *)sortArrayFromArray:(NSArray<DXContactModel *> *)array {
     
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"fullName" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)];
     NSArray *sortedArray = [array sortedArrayUsingDescriptors:@[sortDescriptor]];
@@ -115,7 +115,7 @@
 
 #pragma mark - Parse Contact
 
-- (id)parseContactModelWithCNContact:(CNContact *)contact {
+- (id)parseContactModelFromCNContact:(CNContact *)contact {
     
     NSArray *phones = [self parsePhonesWithCNContact:contact];
     if (phones.count == 0) {
