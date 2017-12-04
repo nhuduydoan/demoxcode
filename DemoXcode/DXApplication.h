@@ -16,6 +16,7 @@
 
 + (id)sharedInstance;
 
+
 - (NSArray *)sectionsArraySectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeSectionedWithData:(NSArray *)data;
 - (NSArray *)arrangeNonSectionedWithData:(NSArray *)data;
