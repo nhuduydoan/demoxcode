@@ -47,7 +47,6 @@
 #pragma mark - SetUp View
 
 - (void)setupCollectionViewModel {
-    
     self.data = [NSMutableArray new];
     NSMutableArray *tableViewData = [NSMutableArray new];
     self.collectionViewModel = [[NIMutableCollectionViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICollectionViewCellFactory class]];
@@ -57,7 +56,6 @@
 }
 
 - (void)updateActionsWithInsertedData:(NSArray *)insertedData {
-    
     weakify(self);
     for (id obj in insertedData) {
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
@@ -71,7 +69,6 @@
 }
 
 - (void)setupCollectionView {
-    
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
     layout.itemSize = CGSizeMake(40, 40);
     layout.minimumInteritemSpacing = 8;
@@ -97,7 +94,6 @@
 }
 
 - (void)addPickedModel:(id)model {
-    
     if ([self.data containsObject:model]) {
         return;
     }
@@ -110,7 +106,6 @@
 }
 
 - (void)removePickedModel:(id)model {
-    
     if (self.data.count == 0) {
         return;
     }

@@ -39,7 +39,6 @@
 #pragma mark - SetUp View
 
 - (void)setupTableView {
-    
     [self.tableView registerNib:[UINib nibWithNibName:NSStringFromClass([DXPickContactTableViewCell class]) bundle:nil] forCellReuseIdentifier:PickContactCell];
     self.tableView.allowsMultipleSelectionDuringEditing = YES;
     self.tableView.editing = YES;
@@ -56,7 +55,6 @@
 }
 
 - (void)setUpNonSectionedTableViewModelWithData:(NSArray *)data {
-    
     NSArray *tableViewData = [self tableViewDataFromData:data];
     self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:self];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexNone
@@ -71,7 +69,6 @@
 }
 
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
-    
     self.actions = [[NITableViewActions alloc] initWithTarget:self];
     weakify(self);
     for (id obj in data) {
@@ -93,12 +90,10 @@
 #pragma mark - Public
 
 - (void)reloadWithData:(NSArray *)data {
-    
     [self setUpNonSectionedTableViewModelWithData:data];
 }
 
 - (void)checkSelectedWithData:(NSArray *)data {
-    
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:isSelectedModel:)]) {
         for (id obj  in data) {
             if (![obj isKindOfClass:[NICellObject class]]) {
@@ -113,7 +108,6 @@
 }
 
 - (void)didSelectModel:(id)model {
-    
     NICellObject *cellObject = [self cellObjectForModel:model];
     if (cellObject == nil) {
         return;
@@ -126,7 +120,6 @@
 }
 
 - (void)deSelectModel:(id)model {
-    
     NICellObject *cellObject = [self cellObjectForModel:model];
     if (cellObject == nil) {
         return;
@@ -139,7 +132,6 @@
 }
 
 - (void)scrollToContactModel:(id)model {
-    
     NICellObject *cellObject = [self cellObjectForModel:model];
     if (cellObject == nil) {
         return;
@@ -154,7 +146,6 @@
 #pragma mark - Private
 
 - (id)cellObjectForModel:(id)model {
-    
     for (NICellObject *object in self.data) {
         if ([object isKindOfClass:[NICellObject class]] && [object.userInfo isEqual:model]) {
             return object;
@@ -164,7 +155,6 @@
 }
 
 - (NSArray *)tableViewDataFromData:(NSArray *)data {
-    
     NSArray *arrangedData = [sApplication arrangeNonSectionedWithData:data];
     NSMutableArray *tableViewData = [NSMutableArray new];
     for (id model in arrangedData) {
@@ -193,7 +183,6 @@
 #pragma mark - UITableView Delegate
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     NICellObject *cellObject = [self.tableviewModel objectAtIndexPath:indexPath];
     id model = cellObject.userInfo;
     if ([self.delegate respondsToSelector:@selector(pickContactsViewController:didDeSelectModel:)]) {
@@ -202,20 +191,17 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    
     if ([self.delegate respondsToSelector:@selector(didTapOnPickContactsViewController:)]) {
         [self.delegate didTapOnPickContactsViewController:self];
     }
 }
 
 - (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     [self setCellColor:[UIColor colorWithRed:235/255.f green:235/255.f blue:235/255.f alpha:1.0] forCell:cell];  //highlight colour
 }
 
 - (void)tableView:(UITableView *)tableView didUnhighlightRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     [self setCellColor:[UIColor clearColor] forCell:cell]; //normal color
 }
