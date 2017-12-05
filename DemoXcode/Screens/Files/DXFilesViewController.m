@@ -11,31 +11,29 @@
 #import "DXFileModel.h"
 #import "DXFilesTableViewCell.h"
 #import "DXFileManager.h"
-#import "DXDownloadManager.h"
+#import "DXDownloadComponent.h"
 
-@interface DXFilesViewController () <DXFileManagerDelegate, DXDownloadManagerDelegate>
+@interface DXFilesViewController ()
 
 @property (nonatomic, retain) NIMutableTableViewModel *tableviewModel;
 @property (nonatomic, retain) NITableViewActions *actions;
-
-@property (strong, nonatomic) NSMutableArray *originalData;
 
 @end
 
 @implementation DXFilesViewController
 
 - (void)dealloc {
-    [sFileManager removeObject:self];
-    [sDownloadManager removeObject:self];
     NSLog(@"%s", __PRETTY_FUNCTION__);
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [sFileManager addDelegate:self];
-    [sDownloadManager addDelegate:self];
+    self.title = @"Files";
     [self setupTableView];
+    [self reloadData];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadDidFinish:) name:DXDownloadManagerDidDownLoadFinished object:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -46,7 +44,7 @@
 - (void)setupTableView {
     self.tableView.backgroundColor = [UIColor clearColor];
     self.view.backgroundColor = [UIColor whiteColor];
-    self.tableView.rowHeight = 44;
+    self.tableView.rowHeight = 50;
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];
     
@@ -59,16 +57,18 @@
     }
 }
 
-- (void)reloadWithData {
-//    self.originalData = data.mutableCopy;
-//    [self setupTableViewModelWithData:data];
+- (void)reloadData {
+    weakify(self);
+    [sFileManager allFileItemModels:^(NSArray<DXFileModel *> *fileItems) {
+        [selfWeak setupTableViewModelWithData:fileItems];
+    }];
 }
 
 - (void)setupTableViewModelWithData:(NSArray *)data {
     NSMutableArray *tableViewData = [self tableviewDataFromData:data];
-    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithSectionedArray:tableViewData delegate:(id)[NICellFactory class]];
+    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICellFactory class]];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexDynamic
-                                 showsSearch:(tableViewData.count > 0)
+                                 showsSearch:NO
                                 showsSummary:NO];
     
     self.tableView.dataSource = self.tableviewModel;
@@ -85,7 +85,8 @@
         weakify(self);
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             DXFileModel *model = [object userInfo];
-            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:model.fileName preferredStyle:UIAlertControllerStyleAlert];
+            NSString *message = [[sFileManager rootFolderPath] stringByAppendingPathComponent:model.fileName];
+            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:model.fileName message:message preferredStyle:UIAlertControllerStyleAlert];
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
             [selfWeak presentViewController:alertController animated:YES completion:nil];
             return NO;
@@ -107,14 +108,10 @@
     return tableViewData;
 }
 
-#pragma mark - DXFileManager Delegate
+#pragma mark - Notification
 
-- (void)fileManager:(DXFileManager *)fileManager didInsertNewItem:(DXFileModel *)fileModel {
-    [self reloadWithData];
-}
-
-- (void)downloadManager:(DXDownloadManager *)downloaderManager downloadDidFinish:(NSURL *)filePath {
-    [self reloadWithData];
+- (void)downloadDidFinish:(NSNotification *)nofitication {
+    [self reloadData];
 }
 
 @end

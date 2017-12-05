@@ -46,7 +46,7 @@
     downloadsController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Downloads" image:[UIImage imageNamed:@"tab_download"] selectedImage:[UIImage imageNamed:@"tab_download"]];
     UINavigationController *navDownloads = [[UINavigationController alloc] initWithRootViewController:downloadsController];
     
-    DXDownloadViewController *filesController = [[DXDownloadViewController alloc] init];
+    DXFilesViewController *filesController = [[DXFilesViewController alloc] init];
     filesController.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Files" image:[UIImage imageNamed:@"tab_file"] selectedImage:[UIImage imageNamed:@"tab_file"]];
     UINavigationController *navFiles = [[UINavigationController alloc] initWithRootViewController:filesController];
     

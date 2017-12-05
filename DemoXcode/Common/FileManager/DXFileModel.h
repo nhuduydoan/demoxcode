@@ -11,8 +11,8 @@
 @interface DXFileModel : NSObject
 
 @property (strong, nonatomic, readonly) NSString *fileName;
-@property (strong, nonatomic, readonly) NSString *targetPath;
+@property (nonatomic, readonly) unsigned long long size;
 
-- (id)initWithFileName:(NSString *)fileName targetPath:(NSString *)targetPath;
+- (id)initWithFileName:(NSString *)fileName size:(unsigned long long)size;
 
 @end

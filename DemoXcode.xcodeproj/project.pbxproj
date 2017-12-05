@@ -79,6 +79,7 @@
 		5CC457251FD551BA007BE6AC /* DXDownloadTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC457231FD551BA007BE6AC /* DXDownloadTableViewCell.m */; };
 		5CC4572A1FD55626007BE6AC /* DXFilesTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC457291FD55626007BE6AC /* DXFilesTableViewCell.m */; };
 		5CC4572E1FD571E9007BE6AC /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CC4572D1FD571E8007BE6AC /* MBProgressHUD.m */; };
+		5CCC1C991FD68FC800CEAFDC /* DXDownloadComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CCC1C981FD68FC800CEAFDC /* DXDownloadComponent.m */; };
 		5CE0D1BC1FCBFF4700CCE134 /* DXApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */; };
 		5CF46FD31FC7C11F00409E1A /* NIMutableCollectionViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CF46FC81FC7C11F00409E1A /* NIMutableCollectionViewModel.m */; };
 		5CF46FD41FC7C11F00409E1A /* NICollectionViewActions.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CF46FCA1FC7C11F00409E1A /* NICollectionViewActions.m */; };
@@ -229,6 +230,8 @@
 		5CC457291FD55626007BE6AC /* DXFilesTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXFilesTableViewCell.m; sourceTree = "<group>"; };
 		5CC4572C1FD571E8007BE6AC /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		5CC4572D1FD571E8007BE6AC /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		5CCC1C971FD68FC800CEAFDC /* DXDownloadComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDownloadComponent.h; sourceTree = "<group>"; };
+		5CCC1C981FD68FC800CEAFDC /* DXDownloadComponent.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXDownloadComponent.m; sourceTree = "<group>"; };
 		5CE0D1BA1FCBFF4700CCE134 /* DXApplication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXApplication.h; sourceTree = "<group>"; };
 		5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXApplication.m; sourceTree = "<group>"; };
 		5CF46FC81FC7C11F00409E1A /* NIMutableCollectionViewModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NIMutableCollectionViewModel.m; sourceTree = "<group>"; };
@@ -614,6 +617,8 @@
 				5CBF99091FD1087D005DEEC8 /* DXDownloadManager.m */,
 				5CBF990B1FD10A1E005DEEC8 /* DXDownloadModel.h */,
 				5CBF990C1FD10A1E005DEEC8 /* DXDownloadModel.m */,
+				5CCC1C971FD68FC800CEAFDC /* DXDownloadComponent.h */,
+				5CCC1C981FD68FC800CEAFDC /* DXDownloadComponent.m */,
 			);
 			path = DownloadManager;
 			sourceTree = "<group>";
@@ -846,6 +851,7 @@
 				5CF46FD51FC7C11F00409E1A /* NICollectionViewCellFactory.m in Sources */,
 				5C27EC291FC575F30065E6B6 /* NIError.m in Sources */,
 				5C2DBA261FD4EABF005D3A0E /* DXFilesViewController.m in Sources */,
+				5CCC1C991FD68FC800CEAFDC /* DXDownloadComponent.m in Sources */,
 				5CBF990D1FD10A1E005DEEC8 /* DXDownloadModel.m in Sources */,
 				5C576AAD1FC3E40E00FFFB09 /* DXContactsSearchBar.m in Sources */,
 				5CF46FD41FC7C11F00409E1A /* NICollectionViewActions.m in Sources */,

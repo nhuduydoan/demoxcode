@@ -21,7 +21,6 @@
 @implementation DXFileManager
 
 + (id)sharedInstance {
-    
     static id instance;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -31,7 +30,6 @@
 }
 
 - (instancetype)initSharedInstance {
-    
     self = [super init];
     if (self) {
         _delegates =  (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
@@ -64,37 +62,78 @@
 
 #pragma mark - Public
 
-- (NSString *)rootFolderTargetPath {
+- (NSString *)rootFolderPath {
     return self.dataPath.copy;
 }
 
-- (NSString *)generateNewPathForTargetPath:(NSString *)targetPath fileName:(NSString *)fileName {
+- (void)allFileItemModels:(void (^)(NSArray<DXFileModel *> *fileItems))completionHandler {
+    weakify(self);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        NSArray *allPathComponents = [[NSFileManager defaultManager]
+                                      contentsOfDirectoryAtURL:[NSURL fileURLWithPath:self.dataPath]
+                                      includingPropertiesForKeys:@[NSURLNameKey,NSURLIsDirectoryKey]
+                                      options:NSDirectoryEnumerationSkipsHiddenFiles error:nil];
+        NSMutableArray *fileItemsArr = [NSMutableArray new];
+        for (NSURL *item in allPathComponents) {
+            NSString *fileName = nil;
+            [item getResourceValue:&fileName forKey:NSURLNameKey error:nil];
+            NSError *attributesError;
+            NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[self.dataPath stringByAppendingPathComponent:fileName] error:&attributesError];
+            NSNumber *fileSizeNumber = [fileAttributes objectForKey:NSFileSize];
+            unsigned long long size = [fileSizeNumber longLongValue];
+            DXFileModel *fileItem = [[DXFileModel alloc] initWithFileName:fileName size:size];
+            [fileItemsArr addObject:fileItem];
+            
+        }
+        if (completionHandler) {
+            [selfWeak runOnMainThread:^{
+                completionHandler(fileItemsArr);
+            }];
+        }
+    });
+}
+
+- (NSData *)contentOfFileItem:(DXFileModel *)model {
+    
+    NSString *filePath = [self.dataPath stringByAppendingPathComponent:model.fileName];
+    NSData *data = [NSData dataWithContentsOfFile:filePath];
+    return data;
+}
+
+- (NSString *)generateNewPathForFileName:(NSString *)fileName {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:self.dataPath]) {
+        NSError *error;
+        [[NSFileManager defaultManager] createDirectoryAtPath:self.dataPath withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error) {
+            return nil;
+        }
+    }
     
     //Get file name and extension
-    NSString *originalName = [fileName stringByDeletingPathExtension];
-    NSString *pathExtension = [fileName pathExtension];
-    NSString *dir = [self.dataPath stringByAppendingPathComponent:targetPath];
-    NSError *error;
+    NSString *fullName = fileName.copy;
+    NSString *originalName = [fullName stringByDeletingPathExtension];
+    NSString *pathExtension = [fullName pathExtension];
+    NSString *path = [self.dataPath stringByAppendingPathComponent:fileName];
+    NSInteger additionNum = 1;
     
-    if (![[NSFileManager defaultManager] fileExistsAtPath:dir])
-        [[NSFileManager defaultManager] createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:&error];
-    
-    if (error) {
-        return nil;
-    }
-    
-    //Try to save with origin file name
-    NSString *path = [dir stringByAppendingPathComponent:fileName];
-    //Check if file has exist
-    NSInteger additionFileName = 1;
     while ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-        //Append "(_additionFileName_)" to the file name
-        NSString *newFileName = [originalName stringByAppendingString:[NSString stringWithFormat:@"(%ld)", (long)additionFileName]];
-        path = [dir stringByAppendingPathComponent:[newFileName stringByAppendingPathExtension:pathExtension]];
-        additionFileName += 1;
+        fullName = [[NSString stringWithFormat:@"%@(%zd)", originalName, additionNum] stringByAppendingPathExtension:pathExtension];
+        path = [self.dataPath stringByAppendingPathComponent:fullName];
+        additionNum ++;
     }
-    
     return path;
+}
+
+#pragma mark - Private
+
+- (void)runOnMainThread:(void (^)(void))block {
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            block();
+        });
+    }
 }
 
 #pragma mark - Delegate

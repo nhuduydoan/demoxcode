@@ -11,17 +11,17 @@
 @interface DXFileModel ()
 
 @property (strong, nonatomic, readwrite) NSString *fileName;
-@property (strong, nonatomic, readwrite) NSString *targetPath;
+@property (nonatomic, readwrite) unsigned long long size;
 
 @end
 
 @implementation DXFileModel
 
-- (id)initWithFileName:(NSString *)fileName targetPath:(NSString *)targetPath {
+- (id)initWithFileName:(NSString *)fileName size:(unsigned long long)size {
     self = [super init];
     if (self) {
         _fileName = fileName;
-        _targetPath = targetPath;
+        _size = size;
     }
     return self;
 }

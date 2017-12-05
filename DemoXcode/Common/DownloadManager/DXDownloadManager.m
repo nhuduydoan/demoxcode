@@ -7,15 +7,16 @@
 //
 
 #import "DXDownloadManager.h"
-#import "DXDownloadModel.h"
-#import "AFURLSessionManager.h"
-#import "DXFileManager.h"
 #import <MobileCoreServices/MobileCoreServices.h>
+#import "DXFileManager.h"
+#import "DXDownloadModel.h"
+#import "DXDownloadComponent.h"
 
-@interface DXDownloadManager ()
+@interface DXDownloadManager () <NSURLSessionDownloadDelegate>
 
-@property (strong, nonatomic) NSMutableSet *delegates;
-@property (strong, nonatomic) AFURLSessionManager *sessionManager;
+@property (strong, nonatomic) NSURLSession *sessionManager;
+@property (strong, nonatomic) NSProgress *downloadProgress;
+@property (strong, nonatomic) NSMutableSet<DXDownloadComponent *> *downloadsArr;
 
 @end
 
@@ -33,8 +34,9 @@
 - (instancetype)initSharedInstance {
     self = [super init];
     if (self) {
-        _sessionManager = [[AFURLSessionManager alloc] init];
-        _delegates =  (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
+        NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+        _sessionManager = [NSURLSession sessionWithConfiguration:sessionConfig delegate:self delegateQueue:nil];
+        _downloadsArr = [NSMutableSet new];
     }
     return self;
 }
@@ -48,12 +50,27 @@
 #pragma mark - Download
 
 
-- (void)downloadWithModel:(DXDownloadModel *)model {
-    
+- (DXDownloadComponent  *)downloadWithModel:(DXDownloadModel *)model {
     if (model.request) {
         NSParameterAssert(model.request.URL && model.request.URL.scheme && model.request.URL.host);
     } else {
         NSParameterAssert(model.URL && model.URL.scheme && model.URL.host);
+    }
+    
+    DXDownloadComponent *component = [self omponentDownloadForModel:model];
+    if (component && component.downloadTask) {
+        switch (component.downloadTask.state) {
+            case NSURLSessionTaskStateRunning:
+                return component;
+                break;
+            case NSURLSessionTaskStateSuspended:
+                [component.downloadTask resume];
+                return component;
+                break;
+            default:
+                [self.downloadsArr removeObject:component];
+                break;
+        }
     }
     
     NSMutableURLRequest *request = model.request;
@@ -61,62 +78,63 @@
         request = [NSMutableURLRequest requestWithURL:model.URL];
         request.HTTPMethod = @"GET";
     }
-    
-    
-    NSURL *(^destinationBLock)(NSURL *targetPath, NSURLResponse *response) = ^(NSURL *targetPath, NSURLResponse *response) {
-        //Update new file name, extension
-        CFStringRef mimeType = (__bridge CFStringRef) [response MIMEType];
-        CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
-        NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
-        if (uti) CFRelease(uti);
-        NSString *fileName = [response suggestedFilename];
-        if ([extension length] > 0) {
-            fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
-        }
-        NSString *filePath = [sFileManager generateNewPathForTargetPath:model.targetPath fileName:fileName];return [NSURL URLWithString:filePath];
-    };
-    
-    void(^completionBLock)(NSURLResponse *response, NSURL *filePath, NSError *error) = ^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-        
-        if (error) {
-            [[NSFileManager defaultManager] removeItemAtURL:filePath error:nil];
-        } else {
-            NSLog(@"File downloaded to: %@", filePath);
-            [self callDelegateDownloadDidfinish:filePath.copy];
-        }
-    };
-    
-    NSURLSessionDownloadTask *downloadTask =
-    [self.sessionManager downloadTaskWithRequest:request
-                                        progress:nil
-                                     destination:destinationBLock
-                               completionHandler:completionBLock];
-    
-//    [self.sessionManager setDownloadTaskDidFinishDownloadingBlock:^NSURL * _Nullable(NSURLSession * _Nonnull session, NSURLSessionDownloadTask * _Nonnull downloadTask, NSURL * _Nonnull location) {
-//        return nil;
-//    }];
-    
-    [downloadTask resume];
+    NSURLSessionDownloadTask *downloadTask = [self.sessionManager downloadTaskWithRequest:request];
+    DXDownloadComponent *newComponent = [[DXDownloadComponent alloc] initWithDownloadModel:model downloadTask:downloadTask];
+    [newComponent resume];
+    [self.downloadsArr addObject:newComponent];
+    return newComponent;
 }
 
-#pragma mark - Private
-
-#pragma mark - Delegate
-
-- (void)addDelegate:(id<DXDownloadManagerDelegate>)delegate {
-    [self.delegates addObject:delegate];
-}
-
-- (void)removeDelegate:(id<DXDownloadManagerDelegate>)delegate {
-    [self.delegates removeObject:delegate];
-}
-
-- (void)callDelegateDownloadDidfinish:(NSURL *)filePath {
-    for (id<DXDownloadManagerDelegate> delegate in self.delegates) {
-        if ([delegate respondsToSelector:@selector(downloadManager:downloadDidFinish:)]) {
-            [delegate downloadManager:self downloadDidFinish:filePath];
+- (DXDownloadComponent *)omponentDownloadForModel:(DXDownloadModel *)model {
+    for (DXDownloadComponent *component in self.downloadsArr) {
+        if ([component.downloadModel isEqual:model]) {
+            return component;
         }
     }
+    return nil;
+}
+
+#pragma mark - NSURLSessionDownloadDelegate
+
+- (void)URLSession:(NSURLSession *)session
+      downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask
+      didWriteData:(int64_t)bytesWritten
+ totalBytesWritten:(int64_t)totalBytesWritten
+totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
+    NSLog(@"%f: %lld / %lld", (float)totalBytesWritten/totalBytesExpectedToWrite , totalBytesWritten, totalBytesExpectedToWrite);
+    for (DXDownloadComponent *component in self.downloadsArr) {
+        if (component.downloadTask == downloadTask) {
+            [component URLSession:session downloadTask:downloadTask
+                     didWriteData:bytesWritten
+                totalBytesWritten:totalBytesWritten
+        totalBytesExpectedToWrite:totalBytesExpectedToWrite];
+        }
+    }
+}
+
+- (void)URLSession:(NSURLSession *)session downloadTask:
+(NSURLSessionDownloadTask *)downloadTask
+didFinishDownloadingToURL:(NSURL * _Nonnull)location {
+    
+    for (DXDownloadComponent *component in self.downloadsArr) {
+        if (component.downloadTask == downloadTask) {
+            [component URLSession:session downloadTask:downloadTask didFinishDownloadingToURL:location];
+        }
+    }
+}
+
+- (void)URLSession:(NSURLSession *)session
+              task:(nonnull NSURLSessionTask *)task
+didCompleteWithError:(nullable NSError *)error {
+    
+    for (DXDownloadComponent *component in self.downloadsArr) {
+        if (component.downloadTask == task) {
+            [component URLSession:session task:task didCompleteWithError:error];
+        }
+    }
+    
+    NSURLSessionTaskState state = task.state;
+    NSLog(@"");
 }
 
 @end

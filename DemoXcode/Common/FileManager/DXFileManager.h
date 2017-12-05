@@ -38,9 +38,13 @@
 
 #pragma mark - Files
 
-- (NSString *)rootFolderTargetPath;
+- (NSString *)rootFolderPath;
 
-- (NSString *)generateNewPathForTargetPath:(NSString *)targetPath fileName:(NSString *)fileName;
+- (void)allFileItemModels:(void (^)(NSArray<DXFileModel *> *fileItems))completionHandler;
+
+- (NSData *)contentOfFileItem:(DXFileModel *)model;
+
+- (NSString *)generateNewPathForFileName:(NSString *)fileName;
 
 #pragma mark - Delegate
 

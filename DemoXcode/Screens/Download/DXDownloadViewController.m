@@ -11,14 +11,15 @@
 #import "DXDownloadManager.h"
 #import "DXDownloadTableViewCell.h"
 #import "DXDownloadModel.h"
-#import "MBProgressHUD.h"
+#import "DXDownloadComponent.h"
+#import "DXFileManager.h"
 
 //https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg
 //https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg
 //http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg
 //https://upload.wikimedia.org/wikipedia/commons/f/fe/Jaljala_Lake,_a_natural_beauty_of_Rolpa,_Nepal..JPG
 
-@interface DXDownloadViewController () <DXDownloadManagerDelegate>
+@interface DXDownloadViewController ()
 
 @property (strong, nonatomic) UIBarButtonItem *addBarButtonItem;
 @property (nonatomic, retain) NIMutableTableViewModel *tableviewModel;
@@ -31,15 +32,19 @@
 @implementation DXDownloadViewController
 
 - (void)dealloc {
-    [sDownloadManager removeDelegate:self];
     NSLog(@"%s", __PRETTY_FUNCTION__);
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.originalData = [NSMutableArray new];
     [self setupNavigationItems];
-    [sDownloadManager addDelegate:self];
+    [self setupTableView];
+    [self setupTableViewModelWithData:self.originalData];
+    [self reloadData];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadManagerBeginDownload:) name:DXDownloadManagerBeginDownLoad object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadDidFinish:) name:DXDownloadManagerDidDownLoadFinished object:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -50,14 +55,16 @@
 #pragma mark - SetUp Views
 
 - (void)setupNavigationItems {
+    self.title = @"Downloads";
     self.addBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStyleDone target:self action:@selector(touchUpInSideAddBarButtonItem)];
     self.navigationItem.rightBarButtonItem = self.addBarButtonItem;
 }
 
 - (void)setupTableView {
-    self.view.backgroundColor = [UIColor whiteColor];
     self.tableView.backgroundColor = [UIColor clearColor];
-    self.tableView.rowHeight = 44;
+    self.view.backgroundColor = [UIColor whiteColor];
+    
+    self.tableView.rowHeight = 50;
     self.tableView.tableHeaderView = [UIView new];
     self.tableView.tableFooterView = [UIView new];
     
@@ -70,16 +77,14 @@
     }
 }
 
-- (void)reloadWithData:(NSArray *)data {
-    self.originalData = data.mutableCopy;
-    [self setupTableViewModelWithData:data];
+- (void)reloadData {
 }
 
 - (void)setupTableViewModelWithData:(NSArray *)data {
     NSMutableArray *tableViewData = [self tableviewDataFromData:data];
-    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithSectionedArray:tableViewData delegate:(id)[NICellFactory class]];
+    self.tableviewModel = [[NIMutableTableViewModel alloc] initWithListArray:tableViewData delegate:(id)[NICellFactory class]];
     [self.tableviewModel setSectionIndexType:NITableViewModelSectionIndexDynamic
-                                 showsSearch:(tableViewData.count > 0)
+                                 showsSearch:NO
                                 showsSummary:NO];
     
     self.tableView.dataSource = self.tableviewModel;
@@ -96,7 +101,8 @@
         weakify(self);
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             DXDownloadModel *model = [object userInfo];
-            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:model.fileName preferredStyle:UIAlertControllerStyleAlert];
+            NSString *message = [[sFileManager rootFolderPath] stringByAppendingPathComponent:model.fileName];
+            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:model.fileName message:message preferredStyle:UIAlertControllerStyleAlert];
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
             [selfWeak presentViewController:alertController animated:YES completion:nil];
             return NO;
@@ -127,26 +133,26 @@
     UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Anh Cun con" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL targetPath:nil fileName:@"Cun con.JPG"];
+        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Cun con.JPG"];
         [selfWeak startDownloadModel:model];
     }];
     UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh Cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL targetPath:nil fileName:@"Hinh Cay.JPEG"];
+        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Hinh Cay.JPEG"];
         [selfWeak startDownloadModel:model];
     }];
     UIAlertAction *dongNui = [UIAlertAction actionWithTitle:@"Anh Donw hoa" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL targetPath:nil fileName:@"Canh Nui.JPG"];
+        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Canh Nui.JPG"];
         [selfWeak startDownloadModel:model];
     }];
     UIAlertAction *hoa = [UIAlertAction actionWithTitle:@"Anh Hoa co" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         NSString *imageLink = @"https://upload.wikimedia.org/wikipedia/commons/f/fe/Jaljala_Lake,_a_natural_beauty_of_Rolpa,_Nepal..JPG";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL targetPath:nil fileName:@"Dong Hoa.JPG"];
+        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Dong Hoa.JPG"];
         [selfWeak startDownloadModel:model];
     }];
     [actionSheet addAction:cuncon];
@@ -158,16 +164,22 @@
 }
 
 - (void)startDownloadModel:(DXDownloadModel *)model {
-    [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
     [sDownloadManager downloadWithModel:model];
 }
 
-#pragma mark - DXDownloadManager Delegate
+#pragma mark - Notification
 
-- (void)downloadManager:(DXDownloadManager *)downloaderManager downloadDidFinish:(NSURL *)filePath {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [MBProgressHUD hideHUDForView:self.navigationController.view animated:YES];
-    });
+- (void)downloadManagerBeginDownload:(NSNotification *)nofitication {
+    [self reloadData];
+    id component = [[nofitication userInfo] objectForKey:DXDownloadComponentKey];
+    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
+    [self.originalData addObject:component];
+    NSArray *indexPaths = [self.tableviewModel addObject:cellObject];
+    [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)downloadDidFinish:(NSNotification *)nofitication {
+    [self reloadData];
 }
 
 @end

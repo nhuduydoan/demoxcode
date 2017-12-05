@@ -11,11 +11,13 @@
 @interface DXDownloadModel : NSObject
 
 @property (strong, nonatomic, readonly) NSString *fileName;
-@property (strong, nonatomic, readonly) NSString *targetPath;
 
 @property (strong, nonatomic, readonly) NSURL *URL;
 @property (strong, nonatomic, readonly) NSMutableURLRequest *request;
 
-- (id)initWithDownloadURL:(NSURL *)downloadURL targetPath:(NSString *)targetPath fileName:(NSString *)fileName;
+@property (strong, nonatomic, readonly) NSURLSessionDownloadTask *downloadTask;
+
+- (id)initWithDownloadURL:(NSURL *)downloadURL fileName:(NSString *)fileName;
+- (void)updateFileName:(NSString *)fileName;
 
 @end

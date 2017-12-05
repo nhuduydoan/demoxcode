@@ -7,18 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-@class DXDownloadManager, DXDownloadModel;
-
-@protocol DXDownloadManagerDelegate <NSObject>
-
-- (void)downloadManager:(DXDownloadManager *)downloaderManager downloadDidFinish:(NSURL *)filePath;
-
-@end
+@class DXDownloadModel ,DXDownloadComponent;
 
 #define sDownloadManager [DXDownloadManager sharedInstance]
 
 @interface DXDownloadManager : NSObject
-
 
 /**
  Alloc and init and manager Object for using
@@ -38,13 +31,7 @@
 
 #pragma mark - Download
 
-- (void)downloadWithModel:(DXDownloadModel *)model;
-
-#pragma mark - Delegate
-
-
-- (void)addDelegate:(id<DXDownloadManagerDelegate>)delegate;
-
-- (void)removeDelegate:(id<DXDownloadManagerDelegate>)delegate;
+- (DXDownloadComponent *)downloadWithModel:(DXDownloadModel *)model;
+- (DXDownloadComponent *)omponentDownloadForModel:(DXDownloadModel *)model;
 
 @end
