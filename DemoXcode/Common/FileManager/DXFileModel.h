@@ -11,7 +11,8 @@
 @interface DXFileModel : NSObject
 
 @property (strong, nonatomic, readonly) NSString *fileName;
-@property (nonatomic, readonly) unsigned long long size;
+@property (nonatomic, readonly) int64_t size;
+@property (strong, nonatomic) UIImage *thumnail;
 
 - (id)initWithFileName:(NSString *)fileName size:(unsigned long long)size;
 

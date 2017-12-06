@@ -10,7 +10,6 @@
 #import "NimbusModels.h"
 #import "DXDownloadManager.h"
 #import "DXDownloadTableViewCell.h"
-#import "DXDownloadModel.h"
 #import "DXDownloadComponent.h"
 #import "DXFileManager.h"
 
@@ -33,6 +32,7 @@
 
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewDidLoad {
@@ -44,7 +44,6 @@
     [self setupTableViewModelWithData:self.originalData];
     [self reloadData];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadManagerBeginDownload:) name:DXDownloadManagerBeginDownLoad object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(downloadDidFinish:) name:DXDownloadManagerDidDownLoadFinished object:nil];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -100,7 +99,7 @@
         }
         weakify(self);
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
-            DXDownloadModel *model = [object userInfo];
+            DXDownloadComponent *model = [object userInfo];
             NSString *message = [[sFileManager rootFolderPath] stringByAppendingPathComponent:model.fileName];
             UIAlertController *alertController = [UIAlertController alertControllerWithTitle:model.fileName message:message preferredStyle:UIAlertControllerStyleAlert];
             [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
@@ -130,30 +129,30 @@
     
     weakify(self);
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Download" message:@"Chose a file to download" preferredStyle:UIAlertControllerStyleActionSheet];
-    UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Anh Cun con" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Cun de thuong" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Cun con.JPG"];
-        [selfWeak startDownloadModel:model];
+        DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithDownloadURL:imageURL fileName:@"Cun con.JPG"];
+        [selfWeak startDownloadComponent:component];
     }];
-    UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh Cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Hinh Cay.JPEG"];
-        [selfWeak startDownloadModel:model];
+        DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithDownloadURL:imageURL fileName:@"Hinh Cay.JPEG"];
+        [selfWeak startDownloadComponent:component];
     }];
-    UIAlertAction *dongNui = [UIAlertAction actionWithTitle:@"Anh Donw hoa" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *dongNui = [UIAlertAction actionWithTitle:@"Canh dong hoa" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Canh Nui.JPG"];
-        [selfWeak startDownloadModel:model];
+        DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithDownloadURL:imageURL fileName:@"Canh Nui.JPG"];
+        [selfWeak startDownloadComponent:component];
     }];
-    UIAlertAction *hoa = [UIAlertAction actionWithTitle:@"Anh Hoa co" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *hoa = [UIAlertAction actionWithTitle:@"Anh hoa co" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         NSString *imageLink = @"https://upload.wikimedia.org/wikipedia/commons/f/fe/Jaljala_Lake,_a_natural_beauty_of_Rolpa,_Nepal..JPG";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadModel *model = [[DXDownloadModel alloc] initWithDownloadURL:imageURL fileName:@"Dong Hoa.JPG"];
-        [selfWeak startDownloadModel:model];
+        DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithDownloadURL:imageURL fileName:@"Dong Hoa.JPG"];
+        [selfWeak startDownloadComponent:component];
     }];
     [actionSheet addAction:cuncon];
     [actionSheet addAction:caycoi];
@@ -163,8 +162,8 @@
     [self presentViewController:actionSheet animated:YES completion:nil];
 }
 
-- (void)startDownloadModel:(DXDownloadModel *)model {
-    [sDownloadManager downloadWithModel:model];
+- (void)startDownloadComponent:(DXDownloadComponent *)component {
+    [sDownloadManager downloadComponent:component];
 }
 
 #pragma mark - Notification
@@ -172,14 +171,14 @@
 - (void)downloadManagerBeginDownload:(NSNotification *)nofitication {
     [self reloadData];
     id component = [[nofitication userInfo] objectForKey:DXDownloadComponentKey];
-    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
+    if ([self.originalData containsObject:component]) {
+        return;
+    }
+    
     [self.originalData addObject:component];
+    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
     NSArray *indexPaths = [self.tableviewModel addObject:cellObject];
     [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
-}
-
-- (void)downloadDidFinish:(NSNotification *)nofitication {
-    [self reloadData];
 }
 
 @end

@@ -33,5 +33,6 @@
  @return : nullable image
  */
 - (UIImage *)titleImageFromString:(NSString *)string;
+- (UIImage *)avatarImageFromOriginalImage:(UIImage *)image;
 
 @end

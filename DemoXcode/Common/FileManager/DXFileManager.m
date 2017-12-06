@@ -7,7 +7,6 @@
 //
 
 #import "DXFileManager.h"
-#import "DXDownloadModel.h"
 #import "DXFileModel.h"
 
 #define Files @"Files"

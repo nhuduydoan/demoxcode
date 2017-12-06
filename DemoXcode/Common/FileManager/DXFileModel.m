@@ -11,7 +11,7 @@
 @interface DXFileModel ()
 
 @property (strong, nonatomic, readwrite) NSString *fileName;
-@property (nonatomic, readwrite) unsigned long long size;
+@property (nonatomic, readwrite) int64_t size;
 
 @end
 

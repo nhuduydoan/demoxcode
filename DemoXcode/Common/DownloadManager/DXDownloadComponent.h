@@ -7,15 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "DXDownloadModel.h"
 @class DXDownloadComponent;
 
 typedef NS_ENUM(NSUInteger) {
-    DXDownloadStatusNone        = 0,
+    DXDownloadStatusPause       = 0,
     DXDownloadStatusRunning     = 1,
-    DXDownloadStatusPause       = 2,
-    DXDownloadStatusCancel      = 3,
-    DXDownloadStatusCompleted   = 4
+    DXDownloadStatusCancel      = 2,
+    DXDownloadStatusCompleted   = 3
 }DXDownloadStatus;
 
 extern NSString *const DXDownloadManagerBeginDownLoad;
@@ -24,7 +22,8 @@ extern NSString *const DXDownloadComponentKey;
 
 @protocol DXDownloadComponentDelegate <NSObject>
 @optional
-- (void)didUpdateDownloadComponent:(DXDownloadComponent *)component;
+- (void)downloadComponent:(DXDownloadComponent *)component didChangeStatus:(DXDownloadStatus)status;
+- (void)downloadComponent:(DXDownloadComponent *)component didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
 - (void)downloadComponent:(DXDownloadComponent *)component didFinishDownloadingToURL:(NSURL *)location;
 - (void)downloadComponent:(DXDownloadComponent *)component didCompleteWithError:(NSError *)error;
 
@@ -32,19 +31,22 @@ extern NSString *const DXDownloadComponentKey;
 
 @interface DXDownloadComponent : NSObject
 
+@property (strong, nonatomic, readonly) NSString *fileName;
+@property (strong, nonatomic, readonly) NSURL *URL;
+@property (nonatomic, readonly) DXDownloadStatus stautus;
+@property (nonatomic, readonly) int64_t receivedData;
+@property (nonatomic, readonly) int64_t expectedTotalData;
+@property (nonatomic, readonly) NSError *downloadError;
+
+/**
+ This property represents the download and will be manage by DownloadManager
+ If stautus value is DXDownloadStatusCancel or DXDownloadStatusCompleted, downloadTask will be nil
+ */
+@property (strong, nonatomic, readonly) NSURLSessionDownloadTask *downloadTask;
+
 @property (weak, nonatomic) id<DXDownloadComponentDelegate> delegate;
 
-@property (strong, nonatomic, readonly) DXDownloadModel *downloadModel;
-@property (strong, nonatomic, readonly) NSURLSessionTask *downloadTask;
-@property (nonatomic) DXDownloadStatus stautus;
-
-- (id)initWithDownloadModel:(DXDownloadModel *)downloadModel downloadTask:(NSURLSessionDownloadTask *)downloadTask;
-
-- (void)pause;
-
-- (void)resume;
-
-- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+- (id)initWithDownloadURL:(NSURL *)downloadURL fileName:(NSString *)fileName;
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location;
 

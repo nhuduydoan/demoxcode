@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-@class DXDownloadModel ,DXDownloadComponent;
+@class DXDownloadComponent;
 
 #define sDownloadManager [DXDownloadManager sharedInstance]
 
@@ -31,7 +31,12 @@
 
 #pragma mark - Download
 
-- (DXDownloadComponent *)downloadWithModel:(DXDownloadModel *)model;
-- (DXDownloadComponent *)omponentDownloadForModel:(DXDownloadModel *)model;
+- (void)downloadComponent:(DXDownloadComponent *)component;
+
+- (void)cancelDownload:(DXDownloadComponent *)component;
+
+- (void)suppendDownload:(DXDownloadComponent *)component;
+
+- (void)resumeDowmload:(DXDownloadComponent *)component;
 
 @end

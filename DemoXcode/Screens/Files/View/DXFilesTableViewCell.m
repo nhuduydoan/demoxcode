@@ -10,6 +10,7 @@
 #import "DXFileModel.h"
 #import "NimbusModels.h"
 #import "DXFileManager.h"
+#import "DXImageManager.h"
 
 @interface DXFilesTableViewCell () <NICell>
 
@@ -87,12 +88,14 @@
 - (void)displayModel:(DXFileModel *)model {
     self.titleLabel.text = model.fileName;
     self.subLabel.text = [self transformedValue:model.size];
-    if ([self pathExtensionIsImageExtension:model.fileName.pathExtension]) {
+    if (!model.thumnail && [self pathExtensionIsImageExtension:model.fileName.pathExtension]) {
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             NSData *data = [sFileManager contentOfFileItem:model];
             UIImage *img = [UIImage imageWithData:data];
+            UIImage *thumnail = [sImageManager avatarImageFromOriginalImage:img];
+            model.thumnail = thumnail;
             dispatch_async(dispatch_get_main_queue(), ^{
-                self.avatarView.image = img;
+                self.avatarView.image = model.thumnail;
                 self.avatarView.contentMode = UIViewContentModeScaleAspectFit;
             });
         });
@@ -106,7 +109,6 @@
 }
 
 - (BOOL)pathExtensionIsImageExtension:(NSString *)pathExtension {
-    
     return [pathExtension.lowercaseString isEqualToString:@"jpg"] || [pathExtension.lowercaseString isEqualToString:@"jpeg"] || [pathExtension.lowercaseString isEqualToString:@"png"];
 }
 
