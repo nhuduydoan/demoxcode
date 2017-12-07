@@ -31,12 +31,21 @@
 
 #pragma mark - Download
 
+- (DXDownloadComponent *)downloadURL:(NSURL *)URL
+                          toFilePath:(NSURL *)filePath
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandle;
+
+- (DXDownloadComponent *)downloadURL:(NSURL *)URL
+                            progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
+                         destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+
 - (void)downloadComponent:(DXDownloadComponent *)component;
 
-- (void)cancelDownload:(DXDownloadComponent *)component;
+- (void)suppendComponent:(DXDownloadComponent *)component;
 
-- (void)suppendDownload:(DXDownloadComponent *)component;
+- (void)cancelComponent:(DXDownloadComponent *)component;
 
-- (void)resumeDowmload:(DXDownloadComponent *)component;
+- (void)cancelAllDownloadComponents;
 
 @end

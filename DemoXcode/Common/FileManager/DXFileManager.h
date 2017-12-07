@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 @class DXFileManager, DXFileModel;
 
+extern NSString* const DXDownloadManagerDidDownLoadFinished;
+
 @protocol DXFileManagerDelegate <NSObject>
 
 @optional

@@ -11,6 +11,8 @@
 
 #define Files @"Files"
 
+NSString* const DXDownloadManagerDidDownLoadFinished = @"DXDownloadManagerDidDownLoadFinished";
+
 @interface DXFileManager ()
 
 @property (strong, nonatomic) NSMutableSet *delegates;

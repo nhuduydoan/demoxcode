@@ -12,11 +12,15 @@
 #import "DXDownloadComponent.h"
 #import "DXDownloadComponent_Private.h"
 
+#import "AFURLSessionManager.h"
+
 @interface DXDownloadManager () <NSURLSessionDownloadDelegate>
 
 @property (strong, nonatomic) NSURLSession *sessionManager;
 @property (strong, nonatomic) NSMutableSet<DXDownloadComponent *> *downloadsArr;
 @property (strong, nonatomic) dispatch_queue_t downloadQueue;
+
+@property (strong, nonatomic) AFURLSessionManager  *afManager;
 
 @end
 
@@ -25,9 +29,7 @@
 static UIBackgroundTaskIdentifier bgTask;
 
 - (void)dealloc {
-    for (DXDownloadComponent *component in self.downloadsArr) {
-        [component cancel];
-    }
+    [self.sessionManager invalidateAndCancel];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -58,10 +60,29 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (void)initSessionManager {
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"DXDownloadManagerSession"];
-    config.discretionary = YES;
+    NSURLSessionConfiguration *config = [self backgroundURLSessionConfiguration];
     _sessionManager = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
 }
+
+
+- (NSURLCache *)defaultURLCache {
+    return [[NSURLCache alloc] initWithMemoryCapacity:20 * 1024 * 1024
+                                         diskCapacity:256 * 1024 * 1024
+                                             diskPath:@"com.nhuduydoan.downloadmanager"];
+}
+
+- (NSURLSessionConfiguration *)backgroundURLSessionConfiguration {
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"DXDownloadManagerSession"];
+    
+    configuration.HTTPShouldSetCookies = YES;
+    configuration.requestCachePolicy = NSURLRequestUseProtocolCachePolicy;
+    configuration.allowsCellularAccess = YES;
+    configuration.timeoutIntervalForRequest = 60.0;
+    configuration.URLCache = [self defaultURLCache];
+    return configuration;
+}
+
+#pragma mark - Private
 
 - (void)runOndownloadQueue:(void (^)(void))block {
     dispatch_sync(self.downloadQueue, ^{
@@ -78,46 +99,90 @@ static UIBackgroundTaskIdentifier bgTask;
 
 #pragma mark - Download
 
+- (DXDownloadComponent *)downloadURL:(NSURL *)URL
+                          toFilePath:(NSURL *)filePath
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler {
+    
+    DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithURL:URL savedPath:filePath];
+    [component setCompletionHandler:completionHandler];
+    [self downloadComponent:component];
+    return component;
+}
+
+- (DXDownloadComponent *)downloadURL:(NSURL *)URL
+                            progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
+                         destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler {
+    
+    DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithURL:URL
+                                                                     progress:downloadProgressBlock
+                                                                  destination:destination
+                                                            completionHandler:completionHandler];
+    [self downloadComponent:component];
+    return component;
+}
+
 - (void)downloadComponent:(DXDownloadComponent *)component {
     NSParameterAssert(component.URL && component.URL.scheme && component.URL.host);
     
     weakify(self);
     [self runOndownloadQueue:^{
-        switch (component.stautus) {
-            case DXDownloadStatusRunning:
+        if (component.downloadTask) {
+            if (component.downloadTask.state == NSURLSessionTaskStateSuspended) {
+                [component resume];
+                [selfWeak.downloadsArr addObject:component];
                 return;
-                break;
-            case DXDownloadStatusPause:
-                if (component.downloadTask) {
-                    [component resume];
-                    return;
-                }
-                break;
-            default:
-                break;
+            } else if (component.downloadTask.state == NSURLSessionTaskStateRunning) {
+                return;
+            }
         }
         
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:component.URL];
-        NSURLSessionDownloadTask *downloadTask = [selfWeak.sessionManager downloadTaskWithRequest:request];
+        NSURLSessionDownloadTask *downloadTask;
+        if (component.resumeData.length) {
+            downloadTask = [selfWeak.sessionManager downloadTaskWithResumeData:component.resumeData];
+        } else {
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:component.URL];
+            downloadTask = [selfWeak.sessionManager downloadTaskWithRequest:request];
+        }
+        
         [component setDownloadTask:downloadTask];
-        [component resume];
+        [downloadTask resume];
         [selfWeak.downloadsArr addObject:component];
     }];
 }
 
-- (void)cancelDownload:(DXDownloadComponent *)component {
-    [component cancel];
-}
-
-- (void)suppendDownload:(DXDownloadComponent *)component {
+- (void)suppendComponent:(DXDownloadComponent *)component {
     [component pause];
 }
 
-- (void)resumeDowmload:(DXDownloadComponent *)component {
-    [component resume];
+- (void)cancelComponent:(DXDownloadComponent *)component {
+    [component cancel];
+}
+
+- (void)cancelAllDownloadComponents {
+    weakify(self);
+    [self runOndownloadQueue:^{
+        for (DXDownloadComponent *component in selfWeak.downloadsArr) {
+            [component cancel];
+        }
+    }];
 }
 
 #pragma mark - NSURLSessionDownloadDelegate
+
+- (void)URLSession:(NSURLSession *)session
+      downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask
+ didResumeAtOffset:(int64_t)fileOffset
+expectedTotalBytes:(int64_t)expectedTotalBytes {
+    
+    for (DXDownloadComponent *component in self.downloadsArr) {
+        if (component.downloadTask == downloadTask) {
+            [component downloadTask:downloadTask
+                didResumeAtOffset:fileOffset
+               expectedTotalBytes:expectedTotalBytes];
+        }
+    }
+}
 
 - (void)URLSession:(NSURLSession *)session
       downloadTask: (NSURLSessionDownloadTask *)downloadTask
@@ -125,7 +190,8 @@ didFinishDownloadingToURL:(NSURL * _Nonnull)location {
     
     for (DXDownloadComponent *component in self.downloadsArr) {
         if (component.downloadTask == downloadTask) {
-            [component URLSession:session downloadTask:downloadTask didFinishDownloadingToURL:location];
+            [component downloadTask:downloadTask
+        didFinishDownloadingToURL:location];
         }
     }
 }
@@ -138,31 +204,15 @@ didCompleteWithError:(nullable NSError *)error {
     [self runOndownloadQueue:^{
         for (DXDownloadComponent *component in selfWeak.downloadsArr) {
             if (component.downloadTask == task) {
-                [component URLSession:session task:task didCompleteWithError:error];
+                [component task:task didCompleteWithError:error];
                 [selfWeak.downloadsArr removeObject:component];
                 break;
             }
         }
     }];
-    
-    if (error) {
-        id data = [[error userInfo] valueForKey:NSURLSessionDownloadTaskResumeData];
-        NSLog(@"");
-    }
-}
-
-- (void)URLSession:(NSURLSession *)session downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes {
-    
 }
 
 - (void)URLSession:(NSURLSession *)session didBecomeInvalidWithError:(nullable NSError *)error {
-    if (session == self.sessionManager) {
-        weakify(self);
-        [self runOndownloadQueue:^{
-            selfWeak.sessionManager = nil;
-            [selfWeak initSessionManager];
-        }];
-    }
 }
 
 @end

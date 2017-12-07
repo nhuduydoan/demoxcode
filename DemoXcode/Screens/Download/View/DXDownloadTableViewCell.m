@@ -9,6 +9,7 @@
 #import "DXDownloadTableViewCell.h"
 #import "NimbusModels.h"
 #import "DXDownloadComponent.h"
+#import "DXFileManager.h"
 #import "DXDownloadManager.h"
 
 @interface DXDownloadTableViewCell () <NICell, DXDownloadComponentDelegate>
@@ -83,12 +84,12 @@
 
 - (IBAction)touchUpInsideResumeButton:(id)sender {
     switch (self.component.stautus) {
-        case DXDownloadStatusRunning: {
-            [sDownloadManager suppendDownload:self.component];
+        case NSURLSessionTaskStateRunning: {
+            [sDownloadManager suppendComponent:self.component];
         }
             break;
-        case DXDownloadStatusPause: {
-            [sDownloadManager resumeDowmload:self.component];
+        case NSURLSessionTaskStateSuspended: {
+            [sDownloadManager downloadComponent:self.component];
         }
             break;
         default:
@@ -98,19 +99,18 @@
 
 - (IBAction)touchUpInsideRefreshButton:(id)sender {
     switch (self.component.stautus) {
-        case DXDownloadStatusRunning: {
-            [sDownloadManager cancelDownload:self.component];
+        case NSURLSessionTaskStateRunning: {
+            [sDownloadManager cancelComponent:self.component];
         }
             break;
-        case DXDownloadStatusPause: {
-            [sDownloadManager cancelDownload:self.component];
+        case NSURLSessionTaskStateSuspended: {
+            [sDownloadManager cancelComponent:self.component];
         }
             break;
-        case DXDownloadStatusCancel: {
-            [sDownloadManager downloadComponent:self.component];
+        case NSURLSessionTaskStateCanceling: {
         }
             break;
-        default:
+        default: [sDownloadManager downloadComponent:self.component];
             break;
     }
 }
@@ -127,46 +127,61 @@
 
 - (void)displayComponent:(DXDownloadComponent *)component {
     [self clearOldData];
-    self.titleLabel.text = component.fileName;
-    NSString *subString;
-    if (component.expectedTotalData > 0) {
-         subString = [NSString stringWithFormat:@"%@/%@", [self transformedValue:component.receivedData], [self transformedValue:component.expectedTotalData]];
-        self.progressView.progress = (CGFloat)component.receivedData/component.expectedTotalData;
-    } else {
-        subString = [NSString stringWithFormat:@"%@", [self transformedValue:component.receivedData]];
-        self.progressView.progress = 0.01;
+    NSString *fileName = [component.response suggestedFilename];
+    if (fileName.length == 0) {
+        if (component.savedPath.lastPathComponent.length) {
+            fileName = component.savedPath.lastPathComponent;
+        } else {
+            fileName = component.URL.absoluteString;
+        }
     }
     
+    self.progressView.progress = component.downloadProgress.fractionCompleted;
+    NSString *subString;
+    if (component.downloadProgress.totalUnitCount > 0) {
+        subString = [NSString stringWithFormat:@"%@/%@", [self transformedValue:component.downloadProgress.completedUnitCount], [self transformedValue:component.downloadProgress.totalUnitCount]];
+    } else {
+        subString = [NSString stringWithFormat:@"%@", [self transformedValue:component.downloadProgress.completedUnitCount]];
+    }
     switch (component.stautus) {
-        case DXDownloadStatusRunning: {
-            subString = [NSString stringWithFormat:@"Loading %@", subString];
+        case NSURLSessionTaskStateRunning: {
+            subString = [NSString stringWithFormat:@"Loading... %@", subString];
             self.subLabel.textColor = [UIColor colorWithWhite:0.5 alpha:1];
             self.progressView.hidden = NO;
             [self.resumeButton setImage:[UIImage imageNamed:@"icon_pause"] forState:UIControlStateNormal];
         }
             break;
-        case DXDownloadStatusPause: {
+        case NSURLSessionTaskStateSuspended: {
             self.subLabel.textColor = [UIColor colorWithWhite:0.5 alpha:1];
             self.progressView.hidden = NO;
-            subString = [NSString stringWithFormat:@"Pausing %@", subString];
+            subString = [NSString stringWithFormat:@"Suppended %@", subString];
         }
             break;
-        case DXDownloadStatusCancel: {
+        case NSURLSessionTaskStateCanceling: {
             self.resumeButton.hidden = YES;
-            subString = [NSString stringWithFormat:@"%@ %@", @"Download canceled", subString];
+            subString = [NSString stringWithFormat:@"%@ %@", @"Canceling... ", subString];
             self.subLabel.textColor = [UIColor redColor];
             [self.refreshButton setImage:[UIImage imageNamed:@"icon_refresh"] forState:UIControlStateNormal];
         }
             break;
-        case DXDownloadStatusCompleted: {
-            self.resumeButton.hidden = YES;
-            self.refreshButton.hidden = YES;
-            self.subLabel.textColor = [UIColor blackColor];
+        case NSURLSessionTaskStateCompleted: {
+            if (component.downloadError) {
+                subString = [NSString stringWithFormat:@"%@ %@", @"Error! ", subString];
+                self.subLabel.textColor = [UIColor redColor];
+                [self.refreshButton setImage:[UIImage imageNamed:@"icon_refresh"] forState:UIControlStateNormal];
+            } else {
+                subString = [NSString stringWithFormat:@"%@ %@", @"Completed ", subString];
+                self.subLabel.textColor = [UIColor blackColor];
+                self.refreshButton.hidden = YES;
+                self.resumeButton.hidden = YES;
+            }
         }
             break;
         default:
+            self.refreshButton.hidden = YES;
             break;
     }
+    self.titleLabel.text = fileName;
     self.subLabel.text = subString;
 }
 
@@ -198,7 +213,7 @@
 
 #pragma mark - DXDownloadComponentDelegate
 
-- (void)downloadComponent:(DXDownloadComponent *)component didChangeStatus:(DXDownloadStatus)status {
+- (void)downloadComponent:(DXDownloadComponent *)component didChangeStatus:(NSURLSessionTaskState)status {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self displayComponent:component];
     });

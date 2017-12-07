@@ -7,21 +7,24 @@
 //
 
 #import "DXDownloadComponent.h"
-#import "DXFileManager.h"
 #import <MobileCoreServices/MobileCoreServices.h>
+#import "DXDownloadManager.h"
 
-NSString *const DXDownloadManagerBeginDownLoad = @"DXDownloadManagerBeginDownLoad";
-NSString *const DXDownloadManagerDidDownLoadFinished = @"DXDownloadManagerDidDownLoadFinished";
-NSString *const DXDownloadComponentKey = @"DXDownloadComponentKey";
+#define DXErrorNoDownloadCode -1
 
 @interface DXDownloadComponent ()
 
-@property (strong, nonatomic, readwrite) NSString *fileName;
 @property (strong, nonatomic, readwrite) NSURL *URL;
-@property (nonatomic, readwrite) DXDownloadStatus stautus;
-@property (nonatomic, readwrite) int64_t receivedData;
-@property (nonatomic, readwrite) int64_t expectedTotalData;
+@property (strong, nonatomic, readwrite) NSURL *savedPath;
+@property (nonatomic, readwrite) NSURLSessionTaskState stautus;
+@property (nonatomic, readwrite) NSURLResponse *response;
 @property (nonatomic, readwrite) NSError *downloadError;
+@property (nonatomic, readwrite) NSData *resumeData;
+@property (strong, nonatomic, readwrite) NSProgress *downloadProgress;
+
+@property (nonatomic, copy, readwrite) void (^downloadProgressBlock)(NSProgress *downloadProgress);
+@property (nonatomic, copy, readwrite) NSURL *(^destinationBlock)(NSURL *targetPath, NSURLResponse *response);
+@property (nonatomic, copy, readwrite) void (^completionHandler)(NSURLResponse *response, NSURL *filePath, NSError *error);
 
 @property (strong, nonatomic, readwrite) NSURLSessionDownloadTask *downloadTask;
 
@@ -34,27 +37,43 @@ NSString *const DXDownloadComponentKey = @"DXDownloadComponentKey";
     NSLog(@"%s", __PRETTY_FUNCTION__);
 }
 
-- (id)initWithDownloadURL:(NSURL *)downloadURL fileName:(NSString *)fileName {
+- (instancetype) init {
+    [super doesNotRecognizeSelector:_cmd];
+    self = nil;
+    return nil;
+}
+
+- (id)initWithURL:(NSURL *)URL savedPath:(NSURL *)savedPath {
     self = [super init];
     if (self) {
-        _fileName = fileName;
-        _URL = downloadURL;
-        _stautus = DXDownloadStatusPause;
+        _URL = URL;
+        _savedPath = savedPath;
+        _stautus = NSURLSessionTaskStateSuspended;
+        _downloadProgress =  [NSProgress new];
     }
     return self;
 }
 
-#pragma mark - Protected
-
-- (void)setDownloadTask:(NSURLSessionDownloadTask *)downloadTask {
-    [self cleanUpForTask:_downloadTask];
-    _downloadTask = downloadTask;
-    [self addObverForTask:_downloadTask];
+- (id)initWithURL:(NSURL *)URL
+         progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
+      destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
+completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler {
+    self = [super init];
+    if (self) {
+        _URL = URL;
+        _stautus = NSURLSessionTaskStateSuspended;
+        _downloadProgressBlock = downloadProgressBlock;
+        _destinationBlock = destination;
+        _completionHandler = completionHandler;
+        _downloadProgress =  [NSProgress new];
+    }
+    return self;
 }
+
+#pragma mark - Download
 
 - (void)resume {
     [self.downloadTask resume];
-    [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerBeginDownLoad object:self userInfo:@{DXDownloadComponentKey:self}];
 }
 
 - (void)pause {
@@ -65,7 +84,7 @@ NSString *const DXDownloadComponentKey = @"DXDownloadComponentKey";
     [self.downloadTask cancel];
 }
 
-#pragma mark - Observer
+#pragma mark - Private
 
 - (void)addObverForTask:(NSURLSessionDownloadTask *)task {
     [task addObserver:self
@@ -88,40 +107,33 @@ NSString *const DXDownloadComponentKey = @"DXDownloadComponentKey";
     [task removeObserver:self forKeyPath:NSStringFromSelector(@selector(state))];
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {\
     if ([object isKindOfClass:[NSURLSessionTask class]]) {
         if ([keyPath isEqualToString:NSStringFromSelector(@selector(state))]) {
             // For change state of downloadtask
-            DXDownloadStatus newStatus = DXDownloadStatusPause;
-            switch ([change[@"new"] integerValue]) {
-                case NSURLSessionTaskStateRunning: newStatus = DXDownloadStatusRunning;
-                    break;
-                case NSURLSessionTaskStateSuspended: newStatus = DXDownloadStatusPause;
-                    break;
-                case NSURLSessionTaskStateCompleted: newStatus = DXDownloadStatusCompleted;
-                    break;
-                case NSURLSessionTaskStateCanceling: newStatus = DXDownloadStatusCancel;
-                    break;
-                default:
-                    break;
-            }
-            self.stautus = newStatus;
+            self.stautus = self.downloadTask.state;
             if ([self.delegate respondsToSelector:@selector(downloadComponent:didChangeStatus:)]){
-                [self.delegate downloadComponent:self didChangeStatus:newStatus];
+                [self.delegate downloadComponent:self didChangeStatus:self.stautus];
             }
             return;
         }
         
-        int64_t receivedBytes = self.downloadTask.countOfBytesReceived;;
-        int64_t expectedTotalData = self.downloadTask.countOfBytesExpectedToReceive;;
+        // For change progress of download
+        int64_t receivedBytes = self.downloadProgress.completedUnitCount;
+        int64_t expectedTotalData = self.downloadProgress.totalUnitCount;
+        int64_t didWriteBytes = 0;
         if ([keyPath isEqualToString:NSStringFromSelector(@selector(countOfBytesReceived))]) {
-             receivedBytes = [change[@"new"] longLongValue];
+            receivedBytes = [change[@"new"] longLongValue];
+            didWriteBytes = receivedBytes - self.downloadProgress.completedUnitCount;
+            self.downloadProgress.completedUnitCount = receivedBytes;
         } else if ([keyPath isEqualToString:NSStringFromSelector(@selector(countOfBytesExpectedToReceive))]) {
             expectedTotalData = [change[@"new"] longLongValue];
+            self.downloadProgress.totalUnitCount = expectedTotalData;
         }
-        self.receivedData = receivedBytes;
-        self.expectedTotalData = expectedTotalData;
-        int64_t didWriteBytes = expectedTotalData - self.receivedData;
+        
+        if (self.downloadProgressBlock) {
+            self.downloadProgressBlock(self.downloadProgress);
+        }
         
         if ([self.delegate respondsToSelector:@selector(downloadComponent:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:)]) {
             [self.delegate downloadComponent:self didWriteData:didWriteBytes totalBytesWritten:receivedBytes totalBytesExpectedToWrite:expectedTotalData];
@@ -129,62 +141,126 @@ NSString *const DXDownloadComponentKey = @"DXDownloadComponentKey";
     }
 }
 
-#pragma mark - NSURLSessionDownloadDelegate
-
-- (void)URLSession:(NSURLSession *)session
-      downloadTask:(NSURLSessionDownloadTask *)downloadTask
-didFinishDownloadingToURL:(NSURL *)location {
+- (NSString *)generateNewFilePathForPath:(NSString *)filePath {
+    NSString *targetPath = [filePath stringByDeletingLastPathComponent];
+    NSString *fileName = [filePath lastPathComponent];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:targetPath]) {
+        NSError *error;
+        [[NSFileManager defaultManager] createDirectoryAtPath:targetPath withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error) {
+            return nil;
+        }
+    }
     
-    NSLog(@"===Download didFinish===");
-    //Update new file name, extension
-    CFStringRef mimeType = (__bridge CFStringRef) [downloadTask.response MIMEType];
-    CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
-    NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
-    if (uti) CFRelease(uti);
-    NSString *fileName = [downloadTask.response suggestedFilename];
-    if ([extension length] > 0) {
-        fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        return filePath;
     }
-    NSString *filePath = [sFileManager generateNewPathForFileName:self.fileName];
-    self.fileName = filePath.lastPathComponent;
-    NSURL *savedURL = [NSURL fileURLWithPath:filePath];
+    
+    //Get file name and extension
+    NSString *originalName = [fileName stringByDeletingPathExtension];
+    NSString *pathExtension = [fileName pathExtension];
+    NSString *path = [targetPath stringByAppendingPathComponent:fileName];
+    NSInteger additionNum = 1;
+    
+    while ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        fileName = [[NSString stringWithFormat:@"%@(%zd)", originalName, additionNum] stringByAppendingPathExtension:pathExtension];
+        path = [targetPath stringByAppendingPathComponent:fileName];
+        additionNum ++;
+    }
+    return path;
+}
+
+#pragma mark - Protected
+
+- (void)setDownloadTask:(NSURLSessionDownloadTask *)downloadTask {
+    [self cleanUpForTask:_downloadTask];
+    _downloadTask = downloadTask;
+    [self addObverForTask:_downloadTask];
+}
+
+- (void)setCompletionHandler:(void (^)(NSURLResponse *, NSURL *, NSError *))completionHandler {
+    _completionHandler = completionHandler;
+}
+
+- (void)downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask
+ didResumeAtOffset:(int64_t)fileOffset
+expectedTotalBytes:(int64_t)expectedTotalBytes {
+    
+    if ([self.delegate respondsToSelector:@selector(downloadComponent:didResumeAtOffset:expectedTotalBytes:)]) {
+        [self.delegate downloadComponent:self didResumeAtOffset:fileOffset expectedTotalBytes:expectedTotalBytes];
+    }
+}
+
+- (void)downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
+    
+    NSURL *savedURL = self.savedPath.copy;
+    if (savedURL && [savedURL isFileURL]) { // Check and fix savedpath which were given when init component
+        NSString *savedPath = savedURL.path;
+        if ([savedPath pathExtension].length == 0) {
+            //Update new file name, extension if saved path do not contain them
+            CFStringRef mimeType = (__bridge CFStringRef) [downloadTask.response MIMEType];
+            CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
+            NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
+            if (uti) CFRelease(uti);
+            NSString *fileName = [downloadTask.response suggestedFilename];
+            if ([extension length] > 0) {
+                fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
+            }
+            savedPath = [savedPath stringByAppendingPathComponent:fileName];
+            savedURL = [NSURL fileURLWithPath:savedPath];
+        }
+        // Check and genarate new path with additional number
+        savedPath = [self generateNewFilePathForPath:savedPath];
+        savedURL = [NSURL fileURLWithPath:savedPath];
+    }
+    
+    if (self.destinationBlock) {
+        NSURL *url = self.destinationBlock(location.copy, downloadTask.response);
+        if (url && [url isFileURL]) { // If saved url from block is valid, get it
+            savedURL = url.copy;
+        }
+    }
+    
     NSError *error = nil;
-    [[NSFileManager defaultManager] moveItemAtURL:location toURL:savedURL error:&error];
-    if (!error) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:self userInfo:@{DXDownloadComponentKey:self}];
-        self.stautus = DXDownloadStatusCompleted;
-        self.receivedData = downloadTask.countOfBytesReceived;
+    if (savedURL && [savedURL isFileURL]) {
+        [[NSFileManager defaultManager] moveItemAtURL:location toURL:savedURL error:&error];
+        self.downloadError = error;
+        if (error) {
+            savedURL = location.copy;
+        }
     } else {
-        self.receivedData = 0;
-        self.stautus = DXDownloadStatusCancel;
+        NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to save file ",
+                                   NSLocalizedFailureReasonErrorKey:@"Cannot save file because saved file path is invalid"};
+        NSError *error = [NSError errorWithDomain:@"" code:DXErrorNoDownloadCode userInfo:userInfo];
+        self.downloadError = error;
+        savedURL = location.copy;
     }
-    self.expectedTotalData = downloadTask.countOfBytesExpectedToReceive;
+    self.savedPath = savedURL.copy;
     if ([self.delegate respondsToSelector:@selector(downloadComponent:didFinishDownloadingToURL:)]) {
         [self.delegate downloadComponent:self didFinishDownloadingToURL:savedURL];
     }
 }
 
-- (void)URLSession:(NSURLSession *)session
-              task:(NSURLSessionTask *)task
-didCompleteWithError:(NSError *)error {
-    NSLog(@"");
-    self.receivedData = task.countOfBytesReceived;
-    self.expectedTotalData = task.countOfBytesExpectedToReceive;
+- (void)task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
     if (error) {
-        self.receivedData = 0;
-        self.stautus = DXDownloadStatusCancel;
         self.downloadError = error;
+        NSData *resumeData = [error.userInfo objectForKey:NSURLSessionDownloadTaskResumeData];
+        self.resumeData = resumeData;
     } else {
-        if (self.expectedTotalData < 0) {
-            self.expectedTotalData = self.receivedData;
-        }
+        self.resumeData = nil;
     }
-    if ([self.delegate respondsToSelector:@selector(downloadComponent:didCompleteWithError:)]) {
-        [self.delegate downloadComponent:self didCompleteWithError:error];
+    self.stautus = self.downloadTask.state;
+    if (self.completionHandler) {
+        self.completionHandler(task.response, self.savedPath.copy, error);
     }
     
+    if ([self.delegate respondsToSelector:@selector(downloadComponent:didCompleteWithError:)]) {
+        [self.delegate downloadComponent:self didCompleteWithError:self.downloadError.copy];
+    }
     // Remove download task when download finish
-    [self setDownloadTask:nil];
+    if (error == nil) {
+        [self setDownloadTask:nil];
+    }
 }
 
 @end
