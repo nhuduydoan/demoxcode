@@ -150,21 +150,42 @@
         NSString *imageLink = @"https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
         NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
-        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil];
-        if (component) {
-            [selfWeak insertData:component];
+        
+        for (NSInteger i = 0; i <100; i++) {
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                
+                NSLog(@"%zd", i);
+                DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
+                if (component) {
+                    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
+                    NSArray *indexPath = [self.tableviewModel addObject:cellObject];
+                }
+            });
         }
-        [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self .tableView reloadData];
+        });
+//        if (component) {
+//
+//            NSMutableArray *indexPaths = [NSMutableArray new];
+//            for (NSInteger i = 0; i < 10; i++) {
+//                [self.originalData addObject:component];
+//                NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
+//                NSArray *indexPath = [self.tableviewModel addObject:cellObject];
+//                [indexPaths addObjectsFromArray:indexPath];
+//            }
+//            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+//        }
     }];
     UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
         NSURL *fileURL = [NSURL fileURLWithPath:[sFileManager rootFolderPath]];
-        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil];
+        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
         if (component) {
             [selfWeak insertData:component];
         }
-        [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     UIAlertAction *dongNui = [UIAlertAction actionWithTitle:@"Canh nui" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg";
@@ -179,10 +200,9 @@
                                                                return  [NSURL fileURLWithPath:filePath];
                                                                
                                                            } completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-                                                               
-                                                           }];
+                                                               [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
+                                                           } error:nil];
         [selfWeak insertData:component];
-        [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     UIAlertAction *hoa = [UIAlertAction actionWithTitle:@"Anh hoa co" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://upload.wikimedia.org/wikipedia/commons/f/fe/Jaljala_Lake,_a_natural_beauty_of_Rolpa,_Nepal..JPG";
@@ -197,10 +217,9 @@
                                                                return  [NSURL fileURLWithPath:filePath];
                                                                
                                                            } completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-                                                               
-                                                           }];
+                                                               [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
+                                                           } error:nil];
         [selfWeak insertData:component];
-        [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     [actionSheet addAction:cuncon];
     [actionSheet addAction:caycoi];

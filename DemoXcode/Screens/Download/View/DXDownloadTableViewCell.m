@@ -89,7 +89,7 @@
         }
             break;
         case NSURLSessionTaskStateSuspended: {
-            [sDownloadManager resumeComponent:self.component];
+            [sDownloadManager resumeComponent:self.component error:nil];
         }
             break;
         default:
@@ -110,7 +110,7 @@
         case NSURLSessionTaskStateCanceling: {
         }
             break;
-        default: [sDownloadManager resumeComponent:self.component];
+        default: [sDownloadManager resumeComponent:self.component error:nil];
             break;
     }
 }
@@ -128,7 +128,9 @@
 - (void)displayComponent:(DXDownloadComponent *)component {
     [self clearOldData];
     NSString *fileName = [component.response suggestedFilename];
-    if (fileName.length == 0) {
+    if ([component.savedPath pathExtension].length > 0) {
+        fileName = [component.savedPath lastPathComponent];
+    } else if (fileName.length == 0) {
         fileName = component.URL.absoluteString;
     }
     
@@ -183,9 +185,9 @@
 
 - (BOOL)shouldUpdateCellWithObject:(id)object {
     DXDownloadComponent *component = [object userInfo];
-    self.component.delegate = nil;
+    [self.component removeDelegate:self];
     self.component = component;
-    component.delegate = self;
+    [component addDelegate:self];
     [self displayComponent:component];
     return YES;
 }
@@ -221,7 +223,7 @@
     });
 }
 
-- (void)downloadComponent:(DXDownloadComponent *)component didFinishDownloadingToURL:(NSURL *)location {
+- (void)downloadComponent:(DXDownloadComponent *)component didFinishDownloadingAndSaveToURL:(NSURL *)location {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self displayComponent:component];
     });

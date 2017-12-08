@@ -101,7 +101,6 @@
 
 /* Begin PBXFileReference section */
 		0FDB53F48B2C5C695D20CA6B /* libPods-DemoXcode.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DemoXcode.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5C0775281FD7890E00D0988A /* DXDownloadComponent_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXDownloadComponent_Private.h; sourceTree = "<group>"; };
 		5C0775291FD79BAF00D0988A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		5C07752A1FD7CE3500D0988A /* icon_play@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon_play@2x.png"; sourceTree = "<group>"; };
 		5C07752B1FD7CE3500D0988A /* icon_play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_play.png; sourceTree = "<group>"; };
@@ -644,7 +643,6 @@
 				5CBF99091FD1087D005DEEC8 /* DXDownloadManager.m */,
 				5CCC1C971FD68FC800CEAFDC /* DXDownloadComponent.h */,
 				5CCC1C981FD68FC800CEAFDC /* DXDownloadComponent.m */,
-				5C0775281FD7890E00D0988A /* DXDownloadComponent_Private.h */,
 			);
 			path = DownloadManager;
 			sourceTree = "<group>";

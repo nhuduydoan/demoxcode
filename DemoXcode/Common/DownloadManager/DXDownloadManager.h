@@ -31,22 +31,28 @@
 
 #pragma mark - Download
 
+- (DXDownloadComponent *)downloadComponentForDownloadURL:(NSURL *)URL;
+
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
                           toFilePath:(NSURL *)filePath
-                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
+                               error:(NSError **)error;
 
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
                             progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
                          destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
-                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
+                               error:(NSError **)error;
 
-- (void)resumeComponent:(DXDownloadComponent *)component
-            resumeBlock:(void (^)(DXDownloadComponent *component, int64_t fileOffset, int64_t expectedTotalBytes))resumeBlock
-               progress:(void (^)(NSProgress *downloadProgress)) downloadProgressBlock
+- (BOOL)resumeComponent:(DXDownloadComponent *)component
+            resumeBlock:(void (^)(int64_t fileOffset, int64_t expectedTotalBytes))resumeBlock
+               progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
             destination:(NSURL * (^)(NSURL *targetPath, NSURLResponse *response))destination
-      completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+      completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
+                  error:(NSError **)error;
 
-- (void)resumeComponent:(DXDownloadComponent *)component;
+- (BOOL)resumeComponent:(DXDownloadComponent *)component
+                  error:(NSError **)error;
 
 - (void)suppendComponent:(DXDownloadComponent *)component;
 

@@ -11,7 +11,8 @@
 
 typedef NS_ENUM(NSInteger, DXDownloadErrorCode) {
     DXErrorSaveFailed = -1,
-    DXErrorDownloadingSameFile = -2
+    DXErrorDownloadingSameFile = -2,
+    DXErrorCancelingDownload = -3
 };
 
 @protocol DXDownloadComponentDelegate <NSObject>
@@ -30,7 +31,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
        expectedTotalBytes:(int64_t)expectedTotalBytes;
 
 - (void)downloadComponent:(DXDownloadComponent *)component
-didFinishDownloadingToURL:(NSURL *)location;
+didFinishDownloadingAndSaveToURL:(NSURL *)location;
 
 - (void)downloadComponent:(DXDownloadComponent *)component
      didCompleteWithError:(NSError *)error;
@@ -42,17 +43,21 @@ didFinishDownloadingToURL:(NSURL *)location;
 @property (strong, nonatomic, readonly) NSURL *URL;
 @property (strong, nonatomic, readonly) NSURL *savedPath;
 @property (nonatomic, readonly) NSURLSessionTaskState stautus;
-@property (nonatomic, readonly) NSURLResponse *response;
-@property (nonatomic, readonly) NSError *downloadError;
-@property (nonatomic, readonly) NSData *resumeData;
-@property (nonatomic, strong, readonly) NSProgress *downloadProgress;
-
-@property (weak, nonatomic) id<DXDownloadComponentDelegate> delegate;
+@property (strong, nonatomic, readonly) NSURLResponse *response;
+@property (strong, nonatomic, readonly) NSError *downloadError;
+@property (strong, nonatomic, readonly) NSData *resumeData;
+@property (strong, nonatomic, readonly) NSProgress *downloadProgress;
 
 /**
  Init function is unavaiable
  @return nil every time
  */
 - (instancetype)init NS_UNAVAILABLE;
+
+#pragma mark - Delegate
+
+- (void)addDelegate:(id<DXDownloadComponentDelegate>)delegate;
+
+- (void)removeDelegate:(id<DXDownloadComponentDelegate>)delegate;
 
 @end
