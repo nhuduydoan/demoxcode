@@ -10,8 +10,6 @@
 #import "DXFileManager.h"
 #import "DXDownloadComponent.h"
 
-#import "AFURLSessionManager.h"
-
 @interface DXDownloadComponent (Private)
 
 /**
@@ -119,17 +117,12 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (BOOL)isDownloadingURL:(NSURL *)URL {
-    BOOL isContain = NO;
     for (DXDownloadComponent *com in self.downloadsArr) {
         if ([com.URL isEqual:URL]) {
-            isContain = YES;
-            break;
+            return YES;
         }
     }
-    if (!isContain) {
-        NSLog(@"=== Add === %zd", self.downloadsArr.count);
-    }
-    return isContain;
+    return NO;
 }
 
 - (NSError *)errorWhenIsDownloadingURL:(NSURL *)URL {
@@ -142,14 +135,16 @@ static UIBackgroundTaskIdentifier bgTask;
 #pragma mark - Download
 
 - (DXDownloadComponent *)downloadComponentForDownloadURL:(NSURL *)URL {
-    DXDownloadComponent *component;
-    for (DXDownloadComponent *com in self.downloadsArr) {
-        if ([com.URL isEqual:URL]) {
-            component = com;
-            break;
+    @synchronized (self) {
+        DXDownloadComponent *component;
+        for (DXDownloadComponent *com in self.downloadsArr) {
+            if ([com.URL isEqual:URL]) {
+                component = com;
+                break;
+            }
         }
+        return component;
     }
-    return component;
 }
 
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
@@ -159,18 +154,19 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(URL && URL.scheme && URL.host);
     NSParameterAssert(filePath && [filePath isFileURL]);
     
-    if ([self isDownloadingURL:URL]) {
-        // This URL is downloading now
-        if (error) {
-            *error = [self errorWhenIsDownloadingURL:URL];;
+    @synchronized (self) {
+        DXDownloadComponent *component;
+        if ([self isDownloadingURL:URL]) { // This URL is downloading now
+            if (error) {
+                *error = [self errorWhenIsDownloadingURL:URL];;
+            }
+        } else {
+            component = [[DXDownloadComponent alloc] initWithURL:URL savedPath:filePath];
+            [component setCompletionHandler:completionHandler];
+            [self startDownloadWithComponent:component];
         }
-        return nil;
+        return component;
     }
-    
-    DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithURL:URL savedPath:filePath];
-    [component setCompletionHandler:completionHandler];
-    [self resumeComponent:component error:nil];
-    return component;
 }
 
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
@@ -180,23 +176,24 @@ static UIBackgroundTaskIdentifier bgTask;
                                error:(NSError **)error {
     NSParameterAssert(URL && URL.scheme && URL.host);
     
-    if ([self isDownloadingURL:URL]) {
-        // This URL is downloading now
-        if (error) {
-            *error = [self errorWhenIsDownloadingURL:URL];
+    @synchronized (self) {
+        DXDownloadComponent *component;
+        if ([self isDownloadingURL:URL]) { // This URL is downloading now
+            if (error) {
+                *error = [self errorWhenIsDownloadingURL:URL];
+            }
+        } else {
+            component = [[DXDownloadComponent alloc] initWithURL:URL
+                                                        progress:downloadProgressBlock
+                                                     destination:destination
+                                               completionHandler:completionHandler];
+            [self startDownloadWithComponent:component];
         }
-        return nil;
+        return component;
     }
-    
-    DXDownloadComponent *component = [[DXDownloadComponent alloc] initWithURL:URL
-                                                                     progress:downloadProgressBlock
-                                                                  destination:destination
-                                                            completionHandler:completionHandler];
-    [self resumeComponent:component error:error];
-    return component;
 }
 
-- (BOOL)resumeComponent:(DXDownloadComponent *)component 
+- (BOOL)resumeComponent:(DXDownloadComponent *)component
             resumeBlock:(void (^)(int64_t fileOffset, int64_t expectedTotalBytes))resumeBlock
                progress:(void (^)(NSProgress *downloadProgress)) downloadProgressBlock
             destination:(NSURL * (^)(NSURL *targetPath, NSURLResponse *response))destination
@@ -213,33 +210,38 @@ static UIBackgroundTaskIdentifier bgTask;
 - (BOOL)resumeComponent:(DXDownloadComponent *)component error:(NSError **)error {
     NSParameterAssert(component.URL && component.URL.scheme && component.URL.host);
     
-    if ([self isDownloadingURL:component.URL]) {
-        // This URL is downloading now
-        if (error) {
-            *error = [self errorWhenIsDownloadingURL:component.URL];;
+    @synchronized (self) {
+        if (component.stautus == NSURLSessionTaskStateCanceling) {
+            if (error) {
+                NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
+                                           NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being canceled: %@", component.URL.absoluteString]};
+                *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
+            }
+            return NO;
         }
-        return NO;
+        
+        if (component.stautus == component.stautus == NSURLSessionTaskStateRunning) {
+            return YES;
+        }
+        
+        BOOL success = NO;
+        if (component.downloadTask && component.stautus == NSURLSessionTaskStateSuspended) {
+            [component resume];
+            [self.downloadsArr addObject:component];
+            success = YES;
+        } else if ([self isDownloadingURL:component.URL]) { // This URL is downloading now
+            if (error) {
+                *error = [self errorWhenIsDownloadingURL:component.URL];;
+            }
+        } else {
+            [self startDownloadWithComponent:component];
+            success = YES;
+        }
+        return success;
     }
-    
-    if (component.stautus == NSURLSessionTaskStateCanceling) {
-        if (error) {
-        NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
-                                   NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being canceled: %@", component.URL.absoluteString]};
-        *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
-    }
-        return error;
-        return NO;
-    }
-    
-    if (component.stautus == component.stautus == NSURLSessionTaskStateRunning) {
-        return YES;
-    }
-    
-    if (component.downloadTask && component.stautus == NSURLSessionTaskStateSuspended) {
-        [component resume];
-        [self.downloadsArr addObject:component];
-        return YES;
-    }
+}
+
+- (void)startDownloadWithComponent:(DXDownloadComponent *)component {
     
     NSURLSessionDownloadTask *downloadTask;
     if (component.resumeData.length) {
@@ -254,14 +256,14 @@ static UIBackgroundTaskIdentifier bgTask;
     [component setDownloadTask:downloadTask];
     [component resume];
     [self.downloadsArr addObject:component];
-    return YES;
 }
 
 - (void)suppendComponent:(DXDownloadComponent *)component {
-    
-    if (component.stautus == NSURLSessionTaskStateRunning) {
-        [component suppend];
-        [self.downloadsArr removeObject:component];
+    @synchronized (self) {
+        if (component.stautus == NSURLSessionTaskStateRunning) {
+            [component suppend];
+            [self.downloadsArr removeObject:component];
+        }
     }
 }
 
@@ -274,8 +276,10 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (void)cancelAllDownloads {
-    for (DXDownloadComponent *component in self.downloadsArr) {
-        [self cancelComponent:component];
+    @synchronized (self) {
+        for (DXDownloadComponent *component in self.downloadsArr) {
+            [self cancelComponent:component];
+        }
     }
 }
 
@@ -286,11 +290,13 @@ static UIBackgroundTaskIdentifier bgTask;
  didResumeAtOffset:(int64_t)fileOffset
 expectedTotalBytes:(int64_t)expectedTotalBytes {
     
-    for (DXDownloadComponent *component in self.downloadsArr) {
-        if (component.downloadTask == downloadTask) {
-            [component downloadTask:downloadTask
-                didResumeAtOffset:fileOffset
-               expectedTotalBytes:expectedTotalBytes];
+    @synchronized (self) {
+        for (DXDownloadComponent *component in self.downloadsArr) {
+            if (component.downloadTask == downloadTask) {
+                [component downloadTask:downloadTask
+                      didResumeAtOffset:fileOffset
+                     expectedTotalBytes:expectedTotalBytes];
+            }
         }
     }
 }
@@ -299,9 +305,11 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
       downloadTask: (NSURLSessionDownloadTask *)downloadTask
 didFinishDownloadingToURL:(NSURL * _Nonnull)location {
     
-    for (DXDownloadComponent *component in self.downloadsArr) {
-        if (component.downloadTask == downloadTask) {
-            [component downloadTask:downloadTask didFinishDownloadingToURL:location];
+    @synchronized (self) {
+        for (DXDownloadComponent *component in self.downloadsArr) {
+            if (component.downloadTask == downloadTask) {
+                [component downloadTask:downloadTask didFinishDownloadingToURL:location];
+            }
         }
     }
 }
@@ -310,16 +318,18 @@ didFinishDownloadingToURL:(NSURL * _Nonnull)location {
               task:(nonnull NSURLSessionTask *)task
 didCompleteWithError:(nullable NSError *)error {
     
-    DXDownloadComponent *component;
-    for (DXDownloadComponent *com in self.downloadsArr) {
-        if (com.downloadTask == task) {
-            [com task:task didCompleteWithError:error];
-            component = com;
-            break;
+    @synchronized(self) {
+        DXDownloadComponent *component;
+        for (DXDownloadComponent *com in self.downloadsArr) {
+            if (com.downloadTask == task) {
+                [com task:task didCompleteWithError:error];
+                component = com;
+                break;
+            }
         }
-    }
-    if (component) {
-        [self.downloadsArr removeObject:component];
+        if (component) {
+            [self.downloadsArr removeObject:component];
+        }
     }
 }
 

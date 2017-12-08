@@ -154,11 +154,10 @@
         for (NSInteger i = 0; i <100; i++) {
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
                 
-                NSLog(@"%zd", i);
                 DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
                 if (component) {
                     NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
-                    NSArray *indexPath = [self.tableviewModel addObject:cellObject];
+                    [self.tableviewModel addObject:cellObject];
                 }
             });
         }
@@ -166,17 +165,6 @@
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self .tableView reloadData];
         });
-//        if (component) {
-//
-//            NSMutableArray *indexPaths = [NSMutableArray new];
-//            for (NSInteger i = 0; i < 10; i++) {
-//                [self.originalData addObject:component];
-//                NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
-//                NSArray *indexPath = [self.tableviewModel addObject:cellObject];
-//                [indexPaths addObjectsFromArray:indexPath];
-//            }
-//            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
-//        }
     }];
     UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg";
