@@ -89,7 +89,7 @@
         }
             break;
         case NSURLSessionTaskStateSuspended: {
-            [sDownloadManager downloadComponent:self.component];
+            [sDownloadManager resumeComponent:self.component];
         }
             break;
         default:
@@ -110,7 +110,7 @@
         case NSURLSessionTaskStateCanceling: {
         }
             break;
-        default: [sDownloadManager downloadComponent:self.component];
+        default: [sDownloadManager resumeComponent:self.component];
             break;
     }
 }
@@ -129,11 +129,7 @@
     [self clearOldData];
     NSString *fileName = [component.response suggestedFilename];
     if (fileName.length == 0) {
-        if (component.savedPath.lastPathComponent.length) {
-            fileName = component.savedPath.lastPathComponent;
-        } else {
-            fileName = component.URL.absoluteString;
-        }
+        fileName = component.URL.absoluteString;
     }
     
     self.progressView.progress = component.downloadProgress.fractionCompleted;

@@ -101,10 +101,12 @@ NSString* const DXDownloadManagerDidDownLoadFinished = @"DXDownloadManagerDidDow
     return data;
 }
 
-- (NSString *)generateNewPathForFileName:(NSString *)fileName {
-    if (![[NSFileManager defaultManager] fileExistsAtPath:self.dataPath]) {
+- (NSString *)generateNewPathForFilePath:(NSString *)filePath {
+    NSString *folderPath = [filePath stringByDeletingLastPathComponent];
+    NSString *fileName = [filePath lastPathComponent];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:folderPath]) {
         NSError *error;
-        [[NSFileManager defaultManager] createDirectoryAtPath:self.dataPath withIntermediateDirectories:YES attributes:nil error:&error];
+        [[NSFileManager defaultManager] createDirectoryAtPath:folderPath withIntermediateDirectories:YES attributes:nil error:&error];
         if (error) {
             return nil;
         }
@@ -114,12 +116,12 @@ NSString* const DXDownloadManagerDidDownLoadFinished = @"DXDownloadManagerDidDow
     NSString *fullName = fileName.copy;
     NSString *originalName = [fullName stringByDeletingPathExtension];
     NSString *pathExtension = [fullName pathExtension];
-    NSString *path = [self.dataPath stringByAppendingPathComponent:fileName];
+    NSString *path = [folderPath stringByAppendingPathComponent:fileName];
     NSInteger additionNum = 1;
     
     while ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
         fullName = [[NSString stringWithFormat:@"%@(%zd)", originalName, additionNum] stringByAppendingPathExtension:pathExtension];
-        path = [self.dataPath stringByAppendingPathComponent:fullName];
+        path = [folderPath stringByAppendingPathComponent:fullName];
         additionNum ++;
     }
     return path;

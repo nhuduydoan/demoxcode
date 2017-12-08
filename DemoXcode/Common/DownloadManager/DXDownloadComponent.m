@@ -10,8 +10,6 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "DXDownloadManager.h"
 
-#define DXErrorNoDownloadCode -1
-
 @interface DXDownloadComponent ()
 
 @property (strong, nonatomic, readwrite) NSURL *URL;
@@ -24,6 +22,7 @@
 
 @property (nonatomic, copy, readwrite) void (^downloadProgressBlock)(NSProgress *downloadProgress);
 @property (nonatomic, copy, readwrite) NSURL *(^destinationBlock)(NSURL *targetPath, NSURLResponse *response);
+@property (nonatomic, copy, readwrite) void (^resumeBlock)(DXDownloadComponent *DXDownloadComponent, int64_t fileOffset, int64_t expectedTotalBytes);
 @property (nonatomic, copy, readwrite) void (^completionHandler)(NSURLResponse *response, NSURL *filePath, NSError *error);
 
 @property (strong, nonatomic, readwrite) NSURLSessionDownloadTask *downloadTask;
@@ -76,7 +75,7 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
     [self.downloadTask resume];
 }
 
-- (void)pause {
+- (void)suppend {
     [self.downloadTask suspend];
 }
 
@@ -175,7 +174,7 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
 - (void)setDownloadTask:(NSURLSessionDownloadTask *)downloadTask {
     [self cleanUpForTask:_downloadTask];
     _downloadTask = downloadTask;
-    [self addObverForTask:_downloadTask];
+    [self addObverForTask:downloadTask];
 }
 
 - (void)setCompletionHandler:(void (^)(NSURLResponse *, NSURL *, NSError *))completionHandler {
@@ -186,6 +185,10 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
  didResumeAtOffset:(int64_t)fileOffset
 expectedTotalBytes:(int64_t)expectedTotalBytes {
     
+    if (self.resumeBlock) {
+        self.resumeBlock(self, fileOffset, expectedTotalBytes);
+    }
+    
     if ([self.delegate respondsToSelector:@selector(downloadComponent:didResumeAtOffset:expectedTotalBytes:)]) {
         [self.delegate downloadComponent:self didResumeAtOffset:fileOffset expectedTotalBytes:expectedTotalBytes];
     }
@@ -193,31 +196,33 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 
 - (void)downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
     
-    NSURL *savedURL = self.savedPath.copy;
-    if (savedURL && [savedURL isFileURL]) { // Check and fix savedpath which were given when init component
-        NSString *savedPath = savedURL.path;
-        if ([savedPath pathExtension].length == 0) {
-            //Update new file name, extension if saved path do not contain them
-            CFStringRef mimeType = (__bridge CFStringRef) [downloadTask.response MIMEType];
-            CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
-            NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
-            if (uti) CFRelease(uti);
-            NSString *fileName = [downloadTask.response suggestedFilename];
-            if ([extension length] > 0) {
-                fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
-            }
-            savedPath = [savedPath stringByAppendingPathComponent:fileName];
-            savedURL = [NSURL fileURLWithPath:savedPath];
-        }
-        // Check and genarate new path with additional number
-        savedPath = [self generateNewFilePathForPath:savedPath];
-        savedURL = [NSURL fileURLWithPath:savedPath];
-    }
+    NSURL *savedURL = nil;
     
     if (self.destinationBlock) {
         NSURL *url = self.destinationBlock(location.copy, downloadTask.response);
         if (url && [url isFileURL]) { // If saved url from block is valid, get it
             savedURL = url.copy;
+        }
+    }
+    
+    if (savedURL == nil) {
+        if (self.savedPath && [self.savedPath isFileURL]) { // Check and fix savedpath which were given when init component
+            NSString *savedPath = [self.savedPath path];
+            if ([savedPath pathExtension].length == 0) {
+                //Update new file name, extension if saved path do not contain them
+                CFStringRef mimeType = (__bridge CFStringRef) [downloadTask.response MIMEType];
+                CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
+                NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
+                if (uti) CFRelease(uti);
+                NSString *fileName = [downloadTask.response suggestedFilename];
+                if ([extension length] > 0) {
+                    fileName = [[fileName stringByDeletingPathExtension] stringByAppendingPathExtension:extension];
+                }
+                savedPath = [savedPath stringByAppendingPathComponent:fileName];
+            }
+            // Check and genarate new path with additional number
+            savedPath = [self generateNewFilePathForPath:savedPath];
+            savedURL = [NSURL fileURLWithPath:savedPath];
         }
     }
     
@@ -231,7 +236,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
     } else {
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to save file ",
                                    NSLocalizedFailureReasonErrorKey:@"Cannot save file because saved file path is invalid"};
-        NSError *error = [NSError errorWithDomain:@"" code:DXErrorNoDownloadCode userInfo:userInfo];
+        NSError *error = [NSError errorWithDomain:@"" code:DXErrorSaveFailed userInfo:userInfo];
         self.downloadError = error;
         savedURL = location.copy;
     }
@@ -243,11 +248,17 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 
 - (void)task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
     if (error) {
+        // Keep all blocks for resume download
         self.downloadError = error;
         NSData *resumeData = [error.userInfo objectForKey:NSURLSessionDownloadTaskResumeData];
         self.resumeData = resumeData;
     } else {
+        // Release all blocks
         self.resumeData = nil;
+        self.completionHandler = nil;
+        self.destinationBlock = nil;
+        self.downloadProgressBlock = nil;
+        self.resumeBlock = nil;
     }
     self.stautus = self.downloadTask.state;
     if (self.completionHandler) {
@@ -258,9 +269,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         [self.delegate downloadComponent:self didCompleteWithError:self.downloadError.copy];
     }
     // Remove download task when download finish
-    if (error == nil) {
-        [self setDownloadTask:nil];
-    }
+    [self setDownloadTask:nil];
 }
 
 @end

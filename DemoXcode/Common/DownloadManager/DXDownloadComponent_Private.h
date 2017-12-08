@@ -24,13 +24,15 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
 
 - (void)setDownloadProgressBlock:(void (^)(NSProgress *))downloadProgressBlock;
 
+- (void) setResumeBlock:(void (^)(DXDownloadComponent *, int64_t, int64_t))resumeBlock;
+
 - (void)setDestinationBlock:(NSURL *(^)(NSURL *, NSURLResponse *))destinationBlock;
 
 - (void)setCompletionHandler:(void (^)(NSURLResponse *, NSURL *, NSError *))completionHandler;
 
 - (void)resume;
 
-- (void)pause;
+- (void)suppend;
 
 - (void)cancel;
 

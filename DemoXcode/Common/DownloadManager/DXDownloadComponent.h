@@ -9,6 +9,11 @@
 #import <Foundation/Foundation.h>
 @class DXDownloadComponent, DXDownloadManager;
 
+typedef NS_ENUM(NSInteger, DXDownloadErrorCode) {
+    DXErrorSaveFailed = -1,
+    DXErrorDownloadingSameFile = -2
+};
+
 @protocol DXDownloadComponentDelegate <NSObject>
 
 @optional

@@ -46,7 +46,7 @@ extern NSString* const DXDownloadManagerDidDownLoadFinished;
 
 - (NSData *)contentOfFileItem:(DXFileModel *)model;
 
-- (NSString *)generateNewPathForFileName:(NSString *)fileName;
+- (NSString *)generateNewPathForFilePath:(NSString *)filePath;
 
 #pragma mark - Delegate
 

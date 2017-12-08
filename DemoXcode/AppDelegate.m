@@ -22,6 +22,11 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
+    NSURLCache *urlCache = [[NSURLCache alloc] initWithMemoryCapacity:128 * 1024 * 1024
+                                                         diskCapacity:1024 * 1024 * 1024
+                                                             diskPath:@"com.nhuduydoan.downloadmanager"];
+    [NSURLCache setSharedURLCache:urlCache];
+    
     CGRect screen =  [UIScreen mainScreen].bounds;
     self.window = [[UIWindow alloc] initWithFrame:screen];
     [self setupRootViewController];

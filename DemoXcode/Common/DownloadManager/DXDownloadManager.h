@@ -33,19 +33,25 @@
 
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
                           toFilePath:(NSURL *)filePath
-                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandle;
+                   completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
 
 - (DXDownloadComponent *)downloadURL:(NSURL *)URL
                             progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
                          destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
                    completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
 
-- (void)downloadComponent:(DXDownloadComponent *)component;
+- (void)resumeComponent:(DXDownloadComponent *)component
+            resumeBlock:(void (^)(DXDownloadComponent *component, int64_t fileOffset, int64_t expectedTotalBytes))resumeBlock
+               progress:(void (^)(NSProgress *downloadProgress)) downloadProgressBlock
+            destination:(NSURL * (^)(NSURL *targetPath, NSURLResponse *response))destination
+      completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+
+- (void)resumeComponent:(DXDownloadComponent *)component;
 
 - (void)suppendComponent:(DXDownloadComponent *)component;
 
 - (void)cancelComponent:(DXDownloadComponent *)component;
 
-- (void)cancelAllDownloadComponents;
+- (void)cancelAllDownloads;
 
 @end

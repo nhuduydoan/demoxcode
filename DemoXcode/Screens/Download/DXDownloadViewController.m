@@ -12,6 +12,7 @@
 #import "DXDownloadTableViewCell.h"
 #import "DXDownloadComponent.h"
 #import "DXFileManager.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 //https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg
 //https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg
@@ -20,6 +21,7 @@
 
 @interface DXDownloadViewController ()
 
+@property (strong, nonatomic) UIBarButtonItem *cancelAllBarItem;
 @property (strong, nonatomic) UIBarButtonItem *addBarButtonItem;
 @property (nonatomic, retain) NIMutableTableViewModel *tableviewModel;
 @property (nonatomic, retain) NITableViewActions *actions;
@@ -55,6 +57,8 @@
     self.title = @"Downloads";
     self.addBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStyleDone target:self action:@selector(touchUpInSideAddBarButtonItem)];
     self.navigationItem.rightBarButtonItem = self.addBarButtonItem;
+    self.cancelAllBarItem = [[UIBarButtonItem alloc] initWithTitle:@"Cancel All" style:UIBarButtonItemStyleDone target:self action:@selector(touchUpInsideCancelAllBarButtonItem)];
+    self.navigationItem.leftBarButtonItem = self.cancelAllBarItem;
 }
 
 - (void)setupTableView {
@@ -134,6 +138,10 @@
 
 #pragma mark - Actions
 
+- (void)touchUpInsideCancelAllBarButtonItem {
+    [sDownloadManager cancelAllDownloads];
+}
+
 - (void)touchUpInSideAddBarButtonItem {
     
     weakify(self);
@@ -143,7 +151,9 @@
         NSURL *imageURL = [NSURL URLWithString:imageLink];
         NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
         DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil];
-        [selfWeak insertData:component];
+        if (component) {
+            [selfWeak insertData:component];
+        }
         [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -151,21 +161,44 @@
         NSURL *imageURL = [NSURL URLWithString:imageLink];
         NSURL *fileURL = [NSURL fileURLWithPath:[sFileManager rootFolderPath]];
         DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil];
-        [selfWeak insertData:component];
+        if (component) {
+            [selfWeak insertData:component];
+        }
         [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     UIAlertAction *dongNui = [UIAlertAction actionWithTitle:@"Canh nui" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:nil completionHandler:nil];
+        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL
+                                                              progress:nil
+                                                           destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
+                                                               NSString *filePath = [sFileManager rootFolderPath];
+                                                               NSString *fileName = [response suggestedFilename];
+                                                               filePath = [filePath stringByAppendingPathComponent:fileName];
+                                                               filePath = [sFileManager generateNewPathForFilePath:filePath];
+                                                               return  [NSURL fileURLWithPath:filePath];
+                                                               
+                                                           } completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
+                                                               
+                                                           }];
         [selfWeak insertData:component];
         [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
     UIAlertAction *hoa = [UIAlertAction actionWithTitle:@"Anh hoa co" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://upload.wikimedia.org/wikipedia/commons/f/fe/Jaljala_Lake,_a_natural_beauty_of_Rolpa,_Nepal..JPG";
         NSURL *imageURL = [NSURL URLWithString:imageLink];
-        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:nil completionHandler:nil];
-        [sDownloadManager downloadURL:imageURL progress:nil destination:nil completionHandler:nil];
+        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL
+                                                              progress:nil
+                                                           destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
+                                                               NSString *filePath = [sFileManager rootFolderPath];
+                                                               NSString *fileName = [response suggestedFilename];
+                                                               filePath = [filePath stringByAppendingPathComponent:fileName];
+                                                               filePath = [sFileManager generateNewPathForFilePath:filePath];
+                                                               return  [NSURL fileURLWithPath:filePath];
+                                                               
+                                                           } completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
+                                                               
+                                                           }];
         [selfWeak insertData:component];
         [[NSNotificationCenter defaultCenter] postNotificationName:DXDownloadManagerDidDownLoadFinished object:nil];
     }];
