@@ -9,6 +9,7 @@
 #import "DXDownloadManager.h"
 #import "DXFileManager.h"
 #import "DXDownloadComponent.h"
+#import "AFNetworkReachabilityManager.h"
 
 @interface DXDownloadComponent (Private)
 
@@ -16,6 +17,7 @@
  This property represents the download and will be nil when download completed
  */
 @property (strong, nonatomic, readwrite) NSURLSessionDownloadTask *downloadTask;
+
 
 - (id)initWithURL:(NSURL *)URL savedPath:(NSURL *)savedPath;
 
@@ -54,7 +56,7 @@ didCompleteWithError:(NSError *)error;
 
 @property (strong, nonatomic) NSURLSession *sessionManager;
 @property (strong, nonatomic) NSMutableSet<DXDownloadComponent *> *downloadsArr;
-@property (strong, nonatomic) dispatch_queue_t downloadManagerQueue;
+@property (strong, nonatomic) AFNetworkReachabilityManager *networkManager;
 
 @end
 
@@ -87,8 +89,13 @@ static UIBackgroundTaskIdentifier bgTask;
     if (self) {
         _downloadsArr = [NSMutableSet new];
         [self initSessionManager];
+        _networkManager = [AFNetworkReachabilityManager sharedManager];
+        weakify(self);
+        [_networkManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+            
+        }];
         [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-        _downloadManagerQueue = dispatch_queue_create("DXDownLoadManagerQueue", DISPATCH_QUEUE_SERIAL);
+
     }
     return self;
 }
@@ -134,6 +141,14 @@ static UIBackgroundTaskIdentifier bgTask;
     return error;
 }
 
+- (void)networkNotConnectedError:(NSError **)error; {
+    if (error) {
+        NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Network not connected",
+                                   NSLocalizedFailureReasonErrorKey:@"Network not connected"};
+        *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
+    }
+}
+
 #pragma mark - Download
 
 - (DXDownloadComponent *)downloadComponentForDownloadURL:(NSURL *)URL {
@@ -159,6 +174,11 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(URL && URL.scheme && URL.host);
     NSParameterAssert(filePath && [filePath isFileURL]);
     
+    if (![self.networkManager isReachable]) {
+        [self networkNotConnectedError:error];
+        return nil;
+    }
+    
     @synchronized (self) {
         DXDownloadComponent *component;
         if ([self isDownloadingURL:URL]) { // This URL is being downloaded by self now
@@ -180,6 +200,11 @@ static UIBackgroundTaskIdentifier bgTask;
                    completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
                                error:(NSError **)error {
     NSParameterAssert(URL && URL.scheme && URL.host);
+    
+    if (![self.networkManager isReachable]) {
+        [self networkNotConnectedError:error];
+        return nil;
+    }
     
     @synchronized (self) {
         DXDownloadComponent *component;
@@ -206,6 +231,11 @@ static UIBackgroundTaskIdentifier bgTask;
                   error:(NSError **)error {
     NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
     
+    if (![self.networkManager isReachable]) {
+        [self networkNotConnectedError:error];
+        return NO;
+    }
+    
     [component setResumeBlock:resumeBlock];
     [component setDownloadProgressBlock:downloadProgressBlock];
     [component setDestinationBlock:destination];
@@ -215,6 +245,11 @@ static UIBackgroundTaskIdentifier bgTask;
 
 - (BOOL)resumeComponent:(DXDownloadComponent *)component error:(NSError **)error {
     NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
+    
+    if (![self.networkManager isReachable]) {
+        [self networkNotConnectedError:error];
+        return NO;
+    }
     
     @synchronized (self) {
         if (component.stautus == NSURLSessionTaskStateCanceling) {
@@ -325,7 +360,7 @@ didFinishDownloadingToURL:(NSURL * _Nonnull)location {
 - (void)URLSession:(NSURLSession *)session
               task:(nonnull NSURLSessionTask *)task
 didCompleteWithError:(nullable NSError *)error {
-    
+
     @synchronized(self) {
         DXDownloadComponent *component;
         for (DXDownloadComponent *com in self.downloadsArr) {

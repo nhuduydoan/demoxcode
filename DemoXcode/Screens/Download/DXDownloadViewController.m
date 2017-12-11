@@ -14,6 +14,8 @@
 #import "DXFileManager.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 
+#import "DXNSLockExample.h"
+
 //https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg
 //https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg
 //http://bigwol.com/wp-content/uploads/2014/03/natural-scenery-Taiwan.jpg
@@ -142,8 +144,56 @@
     [sDownloadManager cancelAllDownloads];
 }
 
+- (void)testVaiCaiChoiAhihi {
+    
+    NSMutableArray *componentArr = [NSMutableArray new];
+    DXNSLockExample *sExample = [DXNSLockExample sharedInstance];
+    NSURL *URL = [NSURL URLWithString:@"https://www.codeproject.com/"];
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        for (NSInteger i = 0; i < 100; i++) {
+                [sExample testSycnchronized];
+                NSLog(@"Chay Sync:%zd", i);
+        }
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            for (NSInteger i = 0; i < 100; i++) {
+                [sExample testNoSycnchronized];
+                NSLog(@"Chay No Sync:%zd", i);
+            }
+        });
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            //        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            //            NSLog(@"%zd:%zd", i, [NSThread currentThread]);
+            //            id testModel = [sExample startDoSomesthingsWithURL:URL];
+            //            if (testModel != nil) {
+            //                [componentArr addObject:testModel];
+            //                NSLog(@"===Add:%zd===", i);
+            //            }
+            //
+            //            id obj = [sExample doSomeThingsAhihi:URL];
+            //            if (obj) {
+            //                [componentArr addObject:obj];
+            //                NSLog(@"===Add:%zd===", i);
+            //            }
+            //        });
+            
+        });
+    });
+    
+    
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        NSLog(@"SO luong arr: %zd", componentArr.count);
+//    });
+}
+
 - (void)touchUpInSideAddBarButtonItem {
     
+    [self testVaiCaiChoiAhihi];
+    return;
     weakify(self);
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Download" message:@"Chose a file to download" preferredStyle:UIAlertControllerStyleActionSheet];
     UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Cun de thuong" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
