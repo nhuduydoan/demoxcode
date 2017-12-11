@@ -27,7 +27,7 @@
 
 @property (strong, nonatomic, readwrite) NSURLSessionDownloadTask *downloadTask;
 
-@property (strong, nonatomic) NSMutableSet *delegates;
+@property (strong, nonatomic) NSMapTable *delegates;
 
 @end
 
@@ -49,9 +49,7 @@
     if (self) {
         _URL = URL;
         _savedPath = savedPath;
-        _stautus = NSURLSessionTaskStateSuspended;
-        _downloadProgress =  [NSProgress new];
-        _delegates =  (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
+        [self setupSomeThings];
     }
     return self;
 }
@@ -63,24 +61,35 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
     self = [super init];
     if (self) {
         _URL = URL;
-        _stautus = NSURLSessionTaskStateSuspended;
         _downloadProgressBlock = downloadProgressBlock;
         _destinationBlock = destination;
         _completionHandler = completionHandler;
-        _downloadProgress =  [NSProgress new];
-        _delegates =  (__bridge_transfer NSMutableSet *)CFSetCreateMutable(nil, 0, nil);
+        [self setupSomeThings];
     }
     return self;
+}
+
+- (void)setupSomeThings {
+    
+    _stautus = NSURLSessionTaskStateSuspended;
+    _downloadProgress =  [NSProgress new];
+    _delegates =  [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsWeakMemory];
 }
 
 #pragma mark - Delegate
 
 - (void)addDelegate:(id<DXDownloadComponentDelegate>)delegate {
-    [self.delegates addObject:delegate];
+    @synchronized(self) {
+        NSString *key = [NSString stringWithFormat:@"%p", delegate];
+        [self.delegates setObject:delegate forKey:key];
+    }
 }
 
 - (void)removeDelegate:(id<DXDownloadComponentDelegate>)delegate {
-    [self.delegates removeObject:delegate];
+    @synchronized(self) {
+        NSString *key = [NSString stringWithFormat:@"%p", delegate];
+        [self.delegates removeObjectForKey:key];
+    }
 }
 
 #pragma mark - Download
@@ -129,9 +138,17 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
         if ([keyPath isEqualToString:NSStringFromSelector(@selector(state))]) {
             // For change state of downloadtask
             self.stautus = self.downloadTask.state;
-            for (id delegate in self.delegates) {
-                if ([delegate respondsToSelector:@selector(downloadComponent:didChangeStatus:)]){
-                    [delegate downloadComponent:self didChangeStatus:self.stautus];
+            
+            @synchronized(self) {
+                for (id key in self.delegates) {
+                    id delegate = [self.delegates objectForKey:key];
+                    if ([delegate respondsToSelector:@selector(downloadComponent:didChangeStatus:)]){
+                        [delegate downloadComponent:self didChangeStatus:self.stautus];
+                    }
+                    if (delegate == nil) {
+                        [self.delegates removeObjectForKey:key];
+                        NSLog(@"Remove:%@", key);
+                    }
                 }
             }
             return;
@@ -154,12 +171,17 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
             self.downloadProgressBlock(self.downloadProgress);
         }
         
-        for (id delegate in self.delegates) {
+        for (id key in self.delegates) {
+            id delegate = [self.delegates objectForKey:key];
             if ([delegate respondsToSelector:@selector(downloadComponent:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:)]) {
                 [delegate downloadComponent:self
-                                    didWriteData:didWriteBytes
-                               totalBytesWritten:receivedBytes
-                       totalBytesExpectedToWrite:expectedTotalData];
+                               didWriteData:didWriteBytes
+                          totalBytesWritten:receivedBytes
+                  totalBytesExpectedToWrite:expectedTotalData];
+            }
+            if (delegate == nil) {
+                [self.delegates removeObjectForKey:key];
+                NSLog(@"Remove:%@", key);
             }
         }
     }
@@ -213,9 +235,14 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         self.resumeBlock(fileOffset, expectedTotalBytes);
     }
     
-    for (id delegate in self.delegates) {
+    for (id key in self.delegates) {
+        id delegate = [self.delegates objectForKey:key];
         if ([delegate respondsToSelector:@selector(downloadComponent:didResumeAtOffset:expectedTotalBytes:)]) {
             [delegate downloadComponent:self didResumeAtOffset:fileOffset expectedTotalBytes:expectedTotalBytes];
+        }
+        if (delegate == nil) {
+            [self.delegates removeObjectForKey:key];
+            NSLog(@"Remove:%@", key);
         }
     }
 }
@@ -237,7 +264,8 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
             NSString *savedPath = [self.savedPath path];
             
             if ([savedPath pathExtension].length == 0) {
-                //Update new file name, extension if saved path do not contain them
+                // Update new file name, extension if saved path do not contain them
+                // And now saved path is folder parent path of downloaded file
                 CFStringRef mimeType = (__bridge CFStringRef) [downloadTask.response MIMEType];
                 CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType, NULL);
                 NSString *extension = (__bridge NSString *) UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension);
@@ -269,9 +297,14 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
     }
     self.savedPath = savedURL.copy;
     
-    for (id delegate in self.delegates) {
+    for (id key in self.delegates) {
+        id delegate = [self.delegates objectForKey:key];
         if ([delegate respondsToSelector:@selector(downloadComponent:didFinishDownloadingAndSaveToURL:)]) {
             [delegate downloadComponent:self didFinishDownloadingAndSaveToURL:savedURL];
+        }
+        if (delegate == nil) {
+            [self.delegates removeObjectForKey:key];
+            NSLog(@"Remove:%@", key);
         }
     }
 }
@@ -294,9 +327,14 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         self.completionHandler(task.response, self.savedPath.copy, error);
     }
     
-    for (id delegate in self.delegates) {
+    for (id key in self.delegates) {
+        id delegate = [self.delegates objectForKey:key];
         if ([delegate respondsToSelector:@selector(downloadComponent:didCompleteWithError:)]) {
             [delegate downloadComponent:self didCompleteWithError:self.downloadError.copy];
+        }
+        if (delegate == nil) {
+            [self.delegates removeObjectForKey:key];
+            NSLog(@"Remove:%@", key);
         }
     }
     // Remove download task when download finish

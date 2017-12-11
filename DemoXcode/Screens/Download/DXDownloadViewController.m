@@ -153,16 +153,15 @@
         
         for (NSInteger i = 0; i <100; i++) {
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                
                 DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
                 if (component) {
                     NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
                     [self.tableviewModel addObject:cellObject];
+                    NSLog(@"====Add:%zd====", i);
                 }
             });
         }
-        
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self .tableView reloadData];
         });
     }];

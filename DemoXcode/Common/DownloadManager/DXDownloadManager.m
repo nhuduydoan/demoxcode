@@ -109,6 +109,8 @@ static UIBackgroundTaskIdentifier bgTask;
 
 #pragma mark - Private
 
+
+// This function register background task for download progresses when app did enter background
 - (void)applicationDidEnterBackground:(NSNotification *)notification {
     bgTask = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"DXDownLoadManagerTask" expirationHandler:^{
         [[UIApplication sharedApplication] endBackgroundTask:bgTask];
@@ -135,6 +137,9 @@ static UIBackgroundTaskIdentifier bgTask;
 #pragma mark - Download
 
 - (DXDownloadComponent *)downloadComponentForDownloadURL:(NSURL *)URL {
+    if (!URL || !URL.scheme || !URL.host) {
+        return nil;
+    }
     @synchronized (self) {
         DXDownloadComponent *component;
         for (DXDownloadComponent *com in self.downloadsArr) {
@@ -156,7 +161,7 @@ static UIBackgroundTaskIdentifier bgTask;
     
     @synchronized (self) {
         DXDownloadComponent *component;
-        if ([self isDownloadingURL:URL]) { // This URL is downloading now
+        if ([self isDownloadingURL:URL]) { // This URL is being downloaded by self now
             if (error) {
                 *error = [self errorWhenIsDownloadingURL:URL];;
             }
@@ -178,7 +183,7 @@ static UIBackgroundTaskIdentifier bgTask;
     
     @synchronized (self) {
         DXDownloadComponent *component;
-        if ([self isDownloadingURL:URL]) { // This URL is downloading now
+        if ([self isDownloadingURL:URL]) { // This URL is being downloaded now
             if (error) {
                 *error = [self errorWhenIsDownloadingURL:URL];
             }
@@ -199,6 +204,7 @@ static UIBackgroundTaskIdentifier bgTask;
             destination:(NSURL * (^)(NSURL *targetPath, NSURLResponse *response))destination
       completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
                   error:(NSError **)error {
+    NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
     
     [component setResumeBlock:resumeBlock];
     [component setDownloadProgressBlock:downloadProgressBlock];
@@ -208,7 +214,7 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (BOOL)resumeComponent:(DXDownloadComponent *)component error:(NSError **)error {
-    NSParameterAssert(component.URL && component.URL.scheme && component.URL.host);
+    NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
     
     @synchronized (self) {
         if (component.stautus == NSURLSessionTaskStateCanceling) {
@@ -229,7 +235,7 @@ static UIBackgroundTaskIdentifier bgTask;
             [component resume];
             [self.downloadsArr addObject:component];
             success = YES;
-        } else if ([self isDownloadingURL:component.URL]) { // This URL is downloading now
+        } else if ([self isDownloadingURL:component.URL]) { // This URL is already being downloaded now
             if (error) {
                 *error = [self errorWhenIsDownloadingURL:component.URL];;
             }
@@ -259,6 +265,7 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (void)suppendComponent:(DXDownloadComponent *)component {
+    NSParameterAssert(component);
     @synchronized (self) {
         if (component.stautus == NSURLSessionTaskStateRunning) {
             [component suppend];
@@ -268,6 +275,7 @@ static UIBackgroundTaskIdentifier bgTask;
 }
 
 - (void)cancelComponent:(DXDownloadComponent *)component {
+    NSParameterAssert(component);
     @synchronized(self) {
         if (component.stautus == NSURLSessionTaskStateRunning || component.stautus == NSURLSessionTaskStateSuspended) {
             [component cancel];
