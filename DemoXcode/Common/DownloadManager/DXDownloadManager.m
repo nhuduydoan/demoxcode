@@ -9,7 +9,11 @@
 #import "DXDownloadManager.h"
 #import "DXFileManager.h"
 #import "DXDownloadComponent.h"
-#import "AFNetworkReachabilityManager.h"
+#import "Reachability.h"
+
+#define RequestTimeOutInterval 60
+
+#pragma mark - ====================DXDownloadComponent Category====================
 
 @interface DXDownloadComponent (Private)
 
@@ -25,6 +29,8 @@
          progress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock
       destination:(NSURL *(^)(NSURL *targetPath, NSURLResponse *response))destination
 completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
+
+- (void)setDownloadError:(NSError *)downloadError;
 
 - (void)setDownloadProgressBlock:(void (^)(NSProgress *downloadProgress))downloadProgressBlock;
 
@@ -52,17 +58,19 @@ didCompleteWithError:(NSError *)error;
 
 @end
 
+#pragma mark - ========================DXDownloadManager========================
+
 @interface DXDownloadManager () <NSURLSessionDownloadDelegate>
 
 @property (strong, nonatomic) NSURLSession *sessionManager;
 @property (strong, nonatomic) NSMutableSet<DXDownloadComponent *> *downloadsArr;
-@property (strong, nonatomic) AFNetworkReachabilityManager *networkManager;
+@property (strong, nonatomic) Reachability *networkManager;
+@property (strong, nonatomic) NSDate *disConnectedDate;
+@property (strong, nonatomic) dispatch_queue_t managerSerialQueue;
 
 @end
 
 @implementation DXDownloadManager
-
-static UIBackgroundTaskIdentifier bgTask;
 
 - (void)dealloc {
     [self.sessionManager invalidateAndCancel];
@@ -87,15 +95,16 @@ static UIBackgroundTaskIdentifier bgTask;
 - (instancetype)initSharedInstance {
     self = [super init];
     if (self) {
+        _managerSerialQueue = dispatch_queue_create("ManagerSerialQueue", DISPATCH_QUEUE_SERIAL);
         _downloadsArr = [NSMutableSet new];
         [self initSessionManager];
-        _networkManager = [AFNetworkReachabilityManager sharedManager];
         weakify(self);
-        [_networkManager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-            
-        }];
-        [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-
+        _networkManager = [Reachability reachabilityForInternetConnection];
+        _networkManager.reachabilityBlock = ^(Reachability *reachability, SCNetworkConnectionFlags flags) {
+            [selfWeak didChangeNetworkStatus];
+        };
+        [_networkManager startNotifier];
+        [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(applicationWillEnterForeground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
     }
     return self;
 }
@@ -116,22 +125,13 @@ static UIBackgroundTaskIdentifier bgTask;
 
 #pragma mark - Private
 
-
-// This function register background task for download progresses when app did enter background
-- (void)applicationDidEnterBackground:(NSNotification *)notification {
-    bgTask = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"DXDownLoadManagerTask" expirationHandler:^{
-        [[UIApplication sharedApplication] endBackgroundTask:bgTask];
-        bgTask = UIBackgroundTaskInvalid;
-    }];
-}
-
-- (BOOL)isDownloadingURL:(NSURL *)URL {
-    for (DXDownloadComponent *com in self.downloadsArr) {
-        if ([com.URL isEqual:URL]) {
-            return YES;
+- (void)applicationWillEnterForeground:(NSNotification *)notification {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
+        if (self.networkManager && ![self.networkManager isReachable]) {
+            self.disConnectedDate = [NSDate date];
+            [self checkRequestTimeOut];
         }
-    }
-    return NO;
+    });
 }
 
 - (NSError *)errorWhenIsDownloadingURL:(NSURL *)URL {
@@ -141,12 +141,71 @@ static UIBackgroundTaskIdentifier bgTask;
     return error;
 }
 
-- (void)networkNotConnectedError:(NSError **)error; {
-    if (error) {
-        NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Network not connected",
-                                   NSLocalizedFailureReasonErrorKey:@"Network not connected"};
-        *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
+- (NSError *)networkNotConnectedError {
+    NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Network not connected",
+                               NSLocalizedFailureReasonErrorKey:@"Network not connected"};
+    NSError *error = [NSError errorWithDomain:@"" code:DXErrorNetworkNotConected userInfo:userInfo];
+    return error;
+}
+
+- (NSError *)requestTimeOutError {
+    NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey:@"The request timed out."};
+    NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:DXErrorNetworkTimedOut userInfo:userInfo];
+    return error;
+}
+
+- (void)didChangeNetworkStatus {
+    dispatch_async(self.managerSerialQueue, ^{
+        if (![self.networkManager isReachable]) {
+            self.disConnectedDate = [NSDate date];
+            [self checkRequestTimeOut];
+        } else {
+            self.disConnectedDate = nil;
+            @synchronized(self) {
+                for (DXDownloadComponent *component in self.downloadsArr) {
+                    [component resume];
+                }
+            }
+        }
+    });
+}
+
+- (void)checkRequestTimeOut {
+    if (!self.disConnectedDate) {
+        return;
     }
+    
+    __block BOOL isBackgroundState = NO;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+       isBackgroundState = [UIApplication sharedApplication].applicationState == UIApplicationStateBackground;
+    });
+    if (isBackgroundState) {
+        self.disConnectedDate = nil;
+        return;
+    }
+    
+    if ([[NSDate date] timeIntervalSinceDate:self.disConnectedDate] >= RequestTimeOutInterval) {
+        @synchronized(self) {
+            for (DXDownloadComponent *component in self.downloadsArr) {
+                [component setDownloadError:[self requestTimeOutError]];
+                [component cancel];
+            }
+        }
+        return;
+    }
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
+        [self checkRequestTimeOut];
+    });
+}
+
+- (BOOL)isDownloadingURL:(NSURL *)URL {
+    for (DXDownloadComponent *com in self.downloadsArr) {
+        if ([com.URL isEqual:URL]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 #pragma mark - Download
@@ -175,7 +234,9 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(filePath && [filePath isFileURL]);
     
     if (![self.networkManager isReachable]) {
-        [self networkNotConnectedError:error];
+        if (error) {
+            *error = [self networkNotConnectedError];
+        }
         return nil;
     }
     
@@ -202,7 +263,9 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(URL && URL.scheme && URL.host);
     
     if (![self.networkManager isReachable]) {
-        [self networkNotConnectedError:error];
+        if (error) {
+            *error = [self networkNotConnectedError];
+        }
         return nil;
     }
     
@@ -232,7 +295,9 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
     
     if (![self.networkManager isReachable]) {
-        [self networkNotConnectedError:error];
+        if (error) {
+            *error = [self networkNotConnectedError];
+        }
         return NO;
     }
     
@@ -247,26 +312,29 @@ static UIBackgroundTaskIdentifier bgTask;
     NSParameterAssert(component && component.URL && component.URL.scheme && component.URL.host);
     
     if (![self.networkManager isReachable]) {
-        [self networkNotConnectedError:error];
+        if (error) {
+            *error = [self networkNotConnectedError];
+        }
         return NO;
     }
     
+    if (component.stautus == NSURLSessionTaskStateCanceling) {
+        if (error) {
+            NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
+                                       NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being canceled: %@", component.URL.absoluteString]};
+            *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
+        }
+        return NO;
+    }
+    
+    if (component.stautus == component.stautus == NSURLSessionTaskStateRunning) {
+        return YES;
+    }
+    
     @synchronized (self) {
-        if (component.stautus == NSURLSessionTaskStateCanceling) {
-            if (error) {
-                NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
-                                           NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being canceled: %@", component.URL.absoluteString]};
-                *error = [NSError errorWithDomain:@"" code:DXErrorCancelingDownload userInfo:userInfo];
-            }
-            return NO;
-        }
-        
-        if (component.stautus == component.stautus == NSURLSessionTaskStateRunning) {
-            return YES;
-        }
-        
         BOOL success = NO;
         if (component.downloadTask && component.stautus == NSURLSessionTaskStateSuspended) {
+            [component setDownloadError:nil];
             [component resume];
             [self.downloadsArr addObject:component];
             success = YES;
@@ -275,6 +343,7 @@ static UIBackgroundTaskIdentifier bgTask;
                 *error = [self errorWhenIsDownloadingURL:component.URL];;
             }
         } else {
+            [component setDownloadError:nil];
             [self startDownloadWithComponent:component];
             success = YES;
         }
@@ -365,6 +434,9 @@ didCompleteWithError:(nullable NSError *)error {
         DXDownloadComponent *component;
         for (DXDownloadComponent *com in self.downloadsArr) {
             if (com.downloadTask == task) {
+                if (com.downloadError) { // For Saving file fail and Request time out error
+                    error = com.downloadError;
+                }
                 [com task:task didCompleteWithError:error];
                 component = com;
                 break;

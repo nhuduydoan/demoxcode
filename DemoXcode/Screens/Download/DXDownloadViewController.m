@@ -146,54 +146,25 @@
 
 - (void)testVaiCaiChoiAhihi {
     
-    NSMutableArray *componentArr = [NSMutableArray new];
     DXNSLockExample *sExample = [DXNSLockExample sharedInstance];
-    NSURL *URL = [NSURL URLWithString:@"https://www.codeproject.com/"];
     
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         for (NSInteger i = 0; i < 100; i++) {
-                [sExample testSycnchronized];
-                NSLog(@"Chay Sync:%zd", i);
+            [sExample testSycnchronized];
+            NSLog(@"Chay Sync:%zd", i);
         }
-        });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            
-            for (NSInteger i = 0; i < 100; i++) {
-                [sExample testNoSycnchronized];
-                NSLog(@"Chay No Sync:%zd", i);
-            }
-        });
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            //        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            //            NSLog(@"%zd:%zd", i, [NSThread currentThread]);
-            //            id testModel = [sExample startDoSomesthingsWithURL:URL];
-            //            if (testModel != nil) {
-            //                [componentArr addObject:testModel];
-            //                NSLog(@"===Add:%zd===", i);
-            //            }
-            //
-            //            id obj = [sExample doSomeThingsAhihi:URL];
-            //            if (obj) {
-            //                [componentArr addObject:obj];
-            //                NSLog(@"===Add:%zd===", i);
-            //            }
-            //        });
-            
-        });
     });
-    
-    
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        NSLog(@"SO luong arr: %zd", componentArr.count);
-//    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
+        for (NSInteger i = 0; i < 100; i++) {
+            [sExample testNoSycnchronized];
+            NSLog(@"Chay No Sync:%zd", i);
+        }
+    });
 }
 
 - (void)touchUpInSideAddBarButtonItem {
     
-    [self testVaiCaiChoiAhihi];
-    return;
     weakify(self);
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Download" message:@"Chose a file to download" preferredStyle:UIAlertControllerStyleActionSheet];
     UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Cun de thuong" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -201,19 +172,12 @@
         NSURL *imageURL = [NSURL URLWithString:imageLink];
         NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
         
-        for (NSInteger i = 0; i <100; i++) {
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
-                if (component) {
-                    NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
-                    [self.tableviewModel addObject:cellObject];
-                    NSLog(@"====Add:%zd====", i);
-                }
-            });
+        DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
+        if (component) {
+            NICellObject *cellObject = [NICellObject objectWithCellClass:[DXDownloadTableViewCell class] userInfo:component];
+            [selfWeak.tableviewModel addObject:cellObject];
+            [selfWeak .tableView reloadData];
         }
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self .tableView reloadData];
-        });
     }];
     UIAlertAction *caycoi = [UIAlertAction actionWithTitle:@"Anh cay coi" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://img.wikinut.com/img/1hs8kgtkkw3x-9gc/jpeg/0/a-natural-scene-by-me.jpeg";

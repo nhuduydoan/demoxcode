@@ -53,6 +53,7 @@
 		5C27EC461FC576010065E6B6 /* NICellCatalog.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC391FC576000065E6B6 /* NICellCatalog.m */; };
 		5C27EC471FC576010065E6B6 /* NITableViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC3C1FC576000065E6B6 /* NITableViewModel.m */; };
 		5C27EC481FC576010065E6B6 /* NIFormCellCatalog.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C27EC3D1FC576000065E6B6 /* NIFormCellCatalog.m */; };
+		5C2D503C1FDF73500059D8F5 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C2D503A1FDF734F0059D8F5 /* Reachability.m */; };
 		5C2DBA261FD4EABF005D3A0E /* DXFilesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5C2DBA251FD4EABF005D3A0E /* DXFilesViewController.m */; };
 		5C2DBA301FD4EC29005D3A0E /* tab_download@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C2DBA271FD4EC28005D3A0E /* tab_download@3x.png */; };
 		5C2DBA311FD4EC29005D3A0E /* tab_file.png in Resources */ = {isa = PBXBuildFile; fileRef = 5C2DBA281FD4EC28005D3A0E /* tab_file.png */; };
@@ -191,6 +192,8 @@
 		5C27EC3D1FC576000065E6B6 /* NIFormCellCatalog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NIFormCellCatalog.m; sourceTree = "<group>"; };
 		5C27EC3E1FC576010065E6B6 /* NITableViewActions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NITableViewActions.h; sourceTree = "<group>"; };
 		5C27EC3F1FC576010065E6B6 /* NIRadioGroupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NIRadioGroupController.h; sourceTree = "<group>"; };
+		5C2D503A1FDF734F0059D8F5 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		5C2D503B1FDF73500059D8F5 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		5C2DBA241FD4EABF005D3A0E /* DXFilesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXFilesViewController.h; sourceTree = "<group>"; };
 		5C2DBA251FD4EABF005D3A0E /* DXFilesViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXFilesViewController.m; sourceTree = "<group>"; };
 		5C2DBA271FD4EC28005D3A0E /* tab_download@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "tab_download@3x.png"; sourceTree = "<group>"; };
@@ -494,6 +497,8 @@
 		5C3A8D9E1FD451C800C0DE50 /* Utinity */ = {
 			isa = PBXGroup;
 			children = (
+				5C2D503B1FDF73500059D8F5 /* Reachability.h */,
+				5C2D503A1FDF734F0059D8F5 /* Reachability.m */,
 				5C3A8D9F1FD451E700C0DE50 /* DXImageManager.h */,
 				5C3A8DA01FD451E700C0DE50 /* DXImageManager.m */,
 			);
@@ -878,6 +883,7 @@
 				5C27EC211FC575F30065E6B6 /* NIButtonUtilities.m in Sources */,
 				5CF46FD61FC7C11F00409E1A /* NICollectionViewModel.m in Sources */,
 				5CF46FD51FC7C11F00409E1A /* NICollectionViewCellFactory.m in Sources */,
+				5C2D503C1FDF73500059D8F5 /* Reachability.m in Sources */,
 				5C27EC291FC575F30065E6B6 /* NIError.m in Sources */,
 				5C2DBA261FD4EABF005D3A0E /* DXFilesViewController.m in Sources */,
 				5CCC1C991FD68FC800CEAFDC /* DXDownloadComponent.m in Sources */,

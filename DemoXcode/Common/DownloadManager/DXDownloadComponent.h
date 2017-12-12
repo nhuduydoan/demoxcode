@@ -10,9 +10,11 @@
 @class DXDownloadComponent, DXDownloadManager;
 
 typedef NS_ENUM(NSInteger, DXDownloadErrorCode) {
-    DXErrorSaveFailed = -1,
-    DXErrorDownloadingSameFile = -2,
-    DXErrorCancelingDownload = -3
+    DXErrorSaveFailed               = -1,
+    DXErrorDownloadingSameFile      = -2,
+    DXErrorCancelingDownload        = -3,
+    DXErrorNetworkNotConected       = -4,
+    DXErrorNetworkTimedOut          = -5
 };
 
 @protocol DXDownloadComponentDelegate <NSObject>
