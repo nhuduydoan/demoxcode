@@ -62,11 +62,11 @@ didCompleteWithError:(NSError *)error;
 
 @interface DXDownloadManager () <NSURLSessionDownloadDelegate>
 
+@property (strong, nonatomic) dispatch_queue_t managerSerialQueue;
 @property (strong, nonatomic) NSURLSession *sessionManager;
 @property (strong, nonatomic) NSMutableSet<DXDownloadComponent *> *downloadsArr;
 @property (strong, nonatomic) Reachability *networkManager;
 @property (strong, nonatomic) NSDate *disConnectedDate;
-@property (strong, nonatomic) dispatch_queue_t managerSerialQueue;
 @property (nonatomic) BOOL isCheckingRequestTimeOut;
 
 @end
@@ -127,7 +127,7 @@ didCompleteWithError:(NSError *)error;
 #pragma mark - Private
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
         if (self.networkManager && ![self.networkManager isReachable]) {
             self.disConnectedDate = [NSDate date];
             if (!self.isCheckingRequestTimeOut) {
@@ -168,16 +168,12 @@ didCompleteWithError:(NSError *)error;
             }
         });
     } else {
-        @synchronized(self) {
-            self.disConnectedDate = nil;
-            for (DXDownloadComponent *component in self.downloadsArr) {
-                [component resume];
-            }
-        }
+        self.disConnectedDate = nil;
     }
 }
 
 - (void)checkRequestTimeOut {
+    NSLog(@"Checking request time out");
     if (!self.disConnectedDate) {
         self.isCheckingRequestTimeOut = NO;
         return;
