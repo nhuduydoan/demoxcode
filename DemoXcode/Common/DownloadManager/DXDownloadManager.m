@@ -138,26 +138,6 @@ didCompleteWithError:(NSError *)error;
     });
 }
 
-- (NSError *)errorWhenIsDownloadingURL:(NSURL *)URL {
-    NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
-                               NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being downloaded by another task: %@", URL.absoluteString]};
-    NSError *error = [NSError errorWithDomain:@"" code:DXErrorDownloadingSameFile userInfo:userInfo];
-    return error;
-}
-
-- (NSError *)networkNotConnectedError {
-    NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Network not connected",
-                               NSLocalizedFailureReasonErrorKey:@"Network not connected"};
-    NSError *error = [NSError errorWithDomain:@"" code:DXErrorNetworkNotConected userInfo:userInfo];
-    return error;
-}
-
-- (NSError *)requestTimeOutError {
-    NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey:@"The request timed out."};
-    NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:DXErrorNetworkTimedOut userInfo:userInfo];
-    return error;
-}
-
 - (void)didChangeNetworkStatus {
     if (![self.networkManager isReachable]) {
         dispatch_async(self.managerSerialQueue, ^{
@@ -181,7 +161,7 @@ didCompleteWithError:(NSError *)error;
     
     __block BOOL isBackgroundState = NO;
     dispatch_sync(dispatch_get_main_queue(), ^{
-       isBackgroundState = [UIApplication sharedApplication].applicationState == UIApplicationStateBackground;
+        isBackgroundState = [UIApplication sharedApplication].applicationState == UIApplicationStateBackground;
     });
     if (isBackgroundState) {
         self.disConnectedDate = nil;
@@ -203,6 +183,26 @@ didCompleteWithError:(NSError *)error;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
         [self checkRequestTimeOut];
     });
+}
+
+- (NSError *)errorWhenIsDownloadingURL:(NSURL *)URL {
+    NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Failure to start download",
+                               NSLocalizedFailureReasonErrorKey:[NSString stringWithFormat:@"This file is being downloaded by another task: %@", URL.absoluteString]};
+    NSError *error = [NSError errorWithDomain:@"" code:DXErrorDownloadingSameFile userInfo:userInfo];
+    return error;
+}
+
+- (NSError *)networkNotConnectedError {
+    NSDictionary *userInfo = @{NSLocalizedDescriptionKey:@"Network not connected",
+                               NSLocalizedFailureReasonErrorKey:@"Network not connected"};
+    NSError *error = [NSError errorWithDomain:@"" code:DXErrorNetworkNotConected userInfo:userInfo];
+    return error;
+}
+
+- (NSError *)requestTimeOutError {
+    NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey:@"The request timed out."};
+    NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:DXErrorNetworkTimedOut userInfo:userInfo];
+    return error;
 }
 
 - (BOOL)isDownloadingURL:(NSURL *)URL {
