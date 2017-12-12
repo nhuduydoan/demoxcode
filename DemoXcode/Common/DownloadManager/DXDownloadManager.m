@@ -67,6 +67,7 @@ didCompleteWithError:(NSError *)error;
 @property (strong, nonatomic) Reachability *networkManager;
 @property (strong, nonatomic) NSDate *disConnectedDate;
 @property (strong, nonatomic) dispatch_queue_t managerSerialQueue;
+@property (nonatomic) BOOL isCheckingRequestTimeOut;
 
 @end
 
@@ -129,7 +130,10 @@ didCompleteWithError:(NSError *)error;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), self.managerSerialQueue, ^{
         if (self.networkManager && ![self.networkManager isReachable]) {
             self.disConnectedDate = [NSDate date];
-            [self checkRequestTimeOut];
+            if (!self.isCheckingRequestTimeOut) {
+                self.isCheckingRequestTimeOut = YES;
+                [self checkRequestTimeOut];
+            }
         }
     });
 }
@@ -155,23 +159,27 @@ didCompleteWithError:(NSError *)error;
 }
 
 - (void)didChangeNetworkStatus {
-    dispatch_async(self.managerSerialQueue, ^{
-        if (![self.networkManager isReachable]) {
+    if (![self.networkManager isReachable]) {
+        dispatch_async(self.managerSerialQueue, ^{
             self.disConnectedDate = [NSDate date];
-            [self checkRequestTimeOut];
-        } else {
+            if (!self.isCheckingRequestTimeOut) {
+                self.isCheckingRequestTimeOut = YES;
+                [self checkRequestTimeOut];
+            }
+        });
+    } else {
+        @synchronized(self) {
             self.disConnectedDate = nil;
-            @synchronized(self) {
-                for (DXDownloadComponent *component in self.downloadsArr) {
-                    [component resume];
-                }
+            for (DXDownloadComponent *component in self.downloadsArr) {
+                [component resume];
             }
         }
-    });
+    }
 }
 
 - (void)checkRequestTimeOut {
     if (!self.disConnectedDate) {
+        self.isCheckingRequestTimeOut = NO;
         return;
     }
     
@@ -181,6 +189,7 @@ didCompleteWithError:(NSError *)error;
     });
     if (isBackgroundState) {
         self.disConnectedDate = nil;
+        self.isCheckingRequestTimeOut = NO;
         return;
     }
     
@@ -191,6 +200,7 @@ didCompleteWithError:(NSError *)error;
                 [component cancel];
             }
         }
+        self.isCheckingRequestTimeOut = NO;
         return;
     }
     

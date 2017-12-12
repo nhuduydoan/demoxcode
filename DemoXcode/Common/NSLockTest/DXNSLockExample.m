@@ -89,7 +89,11 @@
 //    @synchronized(self) {
 //    [self.arrLock lock];
     dispatch_sync(self.concurrentQueue, ^{
-        NSInteger count = self.componentsArr.count;
+        for (id obj in self.componentsArr) {
+            if ([obj isKindOfClass:[NSURL class]]) {
+                
+            }
+        }
         sleep(1);
 //    [self.arrLock unlock];
     });
@@ -102,7 +106,11 @@
 //    [self.arrLock lock];
     dispatch_sync(self.concurrentQueue, ^{
 //        sleep(1);
-    NSInteger count = self.componentsArr.count;
+        for (id obj in self.componentsArr) {
+            if ([obj isKindOfClass:[NSURL class]]) {
+                
+            }
+        }
 //    [self.arrLock unlock];
     });
     return 0;
