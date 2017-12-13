@@ -42,7 +42,6 @@
     [self setupChildLabels];
 }
 
-
 - (void)setupAvatarView {
     
     self.avatarLayerView = [[UIView alloc] initWithFrame:CGRectMake(9, 9, 46, 46)];
@@ -93,7 +92,8 @@
     
     if (contactModel.avatar == nil || contactModel.avatar.size.width > 200) {
         weakify(self);
-        [sImageManager avatarForCNContact:contactModel withCompletionHandler:^(UIImage *iamge) {
+        [sImageManager avatarForContact:contactModel withCompletionHandler:^(UIImage *image) {
+            [contactModel updateAvatar:image];
            dispatch_async(dispatch_get_main_queue(), ^{
                selfWeak.avatarImgView.image = contactModel.avatar;
            });

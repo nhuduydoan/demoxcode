@@ -9,13 +9,20 @@
 #import "DXImageManager.h"
 #import "DXContactModel.h"
 #import "NIinMemoryCache.h"
+#import "DXConversationModel.h"
 
 #define kMakeColor(r,g,b,a) [UIColor colorWithRed:r/255.f green:g/255.f blue:b/255.f alpha:a]
+
+typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
+    DXAvatarImageSizeSmall,
+    DXAvatarImageSizeMedium
+};
 
 @interface DXImageManager ()
 
 @property (strong, nonatomic) NSArray *avatarBGColors;
 @property (strong, nonatomic) NIImageMemoryCache *imagesCache;
+@property (strong, nonatomic) dispatch_queue_t avatartQueue;
 
 @end
 
@@ -38,6 +45,7 @@
     if (self) {
         [self setUpAvatarBGColors];
         _imagesCache = [[NIImageMemoryCache alloc] initWithCapacity:1000];
+        _avatartQueue = dispatch_queue_create("DXAvatarQueue", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
@@ -66,28 +74,13 @@
 
 #pragma mark - Public
 
-- (void)avatarForCNContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *iamge))completionHander {
-    
-    static dispatch_queue_t avatarQueue;
-    if (!avatarQueue) {
-        avatarQueue = dispatch_queue_create("AvatarQueue", DISPATCH_QUEUE_SERIAL);
-    }
-    
+- (void)avatarForContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *image))completionHander {
     weakify(self);
-    dispatch_async(avatarQueue, ^{
-        UIImage *img = [selfWeak.imagesCache objectWithName:contact.identifier];
-        if (img == nil) {
-            if (contact.avatar == nil) {
-                img = [selfWeak avatarImageFromFullName:contact.fullName];
-            } else if (contact.avatar.size.width > 200) {
-                img = [selfWeak avatarImageFromOriginalImage:contact.avatar];
-            }
-        }
-        
-        [contact updateAvatar:img];
-        [selfWeak.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+    dispatch_async(self.avatartQueue, ^{
+        UIImage *image = [selfWeak avatarForContact:contact];
+        [selfWeak.imagesCache storeObject:image withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
         if (completionHander) {
-            completionHander(img);
+            completionHander(image);
         }
     });
 }
@@ -103,16 +96,55 @@
     return image;
 }
 
+- (void)avatarForContactsArray:(NSArray<DXContactModel *> *)contacts withCompletionHandler:(void (^)(NSArray *images))completionHander {
+    NSAssert(contacts.count, @"Array of contacts must be non null");
+    
+    weakify(self);
+    dispatch_async(self.avatartQueue, ^{
+        NSMutableArray *images = [NSMutableArray new];
+        for (NSInteger i = 0; i < 3 && i < contacts.count; i ++) {
+            DXContactModel *contact = contacts[i];
+            UIImage *image = [selfWeak avatarForContact:contact];
+            [images addObject:image];
+        }
+        if (contacts.count > 4) {
+            UIImage *image = [selfWeak avatarImageFromFullName:[NSString stringWithFormat:@"%zd", contacts.count] backgroundColor:kMakeColor(197, 165, 150, 1)];
+            [images addObject:image];
+        } else if (contacts.count == 4) {
+            DXContactModel *contact = contacts[3];
+            UIImage *image = [selfWeak avatarForContact:contact];
+            [images addObject:image];
+        }
+        if (completionHander) {
+            completionHander(images);
+        }
+    });
+}
+
 #pragma mark - Private
 
--(UIImage *)avatarImageFromFullName:(NSString *)fulleName {
+- (UIImage *)avatarForContact:(DXContactModel *)contact {
+    NSAssert(contact, @"Contact can not be null");
+    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
+    if (img == nil) {
+        if (contact.avatar == nil) {
+            img = [self avatarImageFromFullName:contact.fullName backgroundColor:nil];
+        } else if (contact.avatar.size.width > 200) {
+            img = [self avatarImageFromOriginalImage:contact.avatar];
+        }
+    }
+    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+    return img;
+}
+
+-(UIImage *)avatarImageFromFullName:(NSString *)fulleName backgroundColor:(UIColor *)color {
     
     NSString *avatarString = [self avatarStringFromFullName:fulleName];
     NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:44 weight:UIFontWeightRegular],
                                      NSForegroundColorAttributeName:[UIColor whiteColor]};
     CGSize size = [avatarString sizeWithAttributes:textAttributes];
     int randColor = rand() % 8;
-    UIColor *backgroundColor = self.avatarBGColors[randColor];
+    UIColor *backgroundColor = color ? color : self.avatarBGColors[randColor];
     CGRect rect = CGRectMake(0, 0, 100, 100);
     UIBezierPath* textPath = [UIBezierPath bezierPathWithRect:rect];
     

@@ -73,7 +73,8 @@
     
     if (contactModel.avatar == nil || contactModel.avatar.size.width > 200) {
         weakify(self);
-        [sImageManager avatarForCNContact:contactModel withCompletionHandler:^(UIImage *iamge) {
+        [sImageManager avatarForContact:contactModel withCompletionHandler:^(UIImage *image) {
+            [contactModel updateAvatar:image];
             dispatch_async(dispatch_get_main_queue(), ^{
                 selfWeak.avatarImgView.image = contactModel.avatar;
             });

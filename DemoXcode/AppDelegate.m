@@ -12,6 +12,8 @@
 #import "DXFilesViewController.h"
 #import "DXDownloadViewController.h"
 
+#import "DXShareFriendViewController.h"
+
 @interface AppDelegate ()
 
 @end
@@ -31,9 +33,13 @@
 
 - (void)setupRootViewController {
     
-    UITabBarController *tabbarController = [[UITabBarController alloc] init];
-    [tabbarController setViewControllers:[self viewControllers]];
-    self.window.rootViewController = tabbarController;
+    DXShareFriendViewController *shareViewController = [DXShareFriendViewController new];
+    UINavigationController *navShareVC = [[UINavigationController alloc] initWithRootViewController:shareViewController];
+    self.window.rootViewController = navShareVC;
+    
+//    UITabBarController *tabbarController = [[UITabBarController alloc] init];
+//    [tabbarController setViewControllers:[self viewControllers]];
+//    self.window.rootViewController = tabbarController;
 }
 
 - (NSArray *)viewControllers {

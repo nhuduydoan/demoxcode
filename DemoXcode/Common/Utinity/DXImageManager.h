@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-@class DXContactModel;
+@class DXContactModel, DXConversationModel;
 
 #define sImageManager [DXImageManager sharedInstance]
 
@@ -21,10 +21,11 @@
  If no image in cache, draw new image from original avatar or draw an image from contact's full name
 
  @param contact : non null contact model
- @param completionHande : block which will be execute when get/create avatar image finished
+ @param completionHander : block which will be execute when get/create avatar image finished
  */
-- (void)avatarForCNContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *iamge))completionHande;
+- (void)avatarForContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *image))completionHander;
 
+- (void)avatarForContactsArray:(NSArray<DXContactModel *> *)contacts withCompletionHandler:(void (^)(NSArray *images))completionHander;
 
 /**
  Draw an image with clear background color and size 100x100, text is given string
