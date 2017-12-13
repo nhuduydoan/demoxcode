@@ -15,6 +15,7 @@
 
 + (id)sharedInstance;
 
+- (UIImage *)imageWithColor:(UIColor *)color;
 
 /**
  Get avatar image from cache for contact model

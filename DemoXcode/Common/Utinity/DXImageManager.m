@@ -74,6 +74,17 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
 
 #pragma mark - Public
 
+- (UIImage *)imageWithColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0, 0, 1, 1);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 - (void)avatarForContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *image))completionHander {
     weakify(self);
     dispatch_async(self.avatartQueue, ^{

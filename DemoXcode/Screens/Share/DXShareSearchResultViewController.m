@@ -23,6 +23,8 @@ NSString* const kShareSearchResultViewCell = @"kShareSearchResultViewCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    [self setupViews];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -35,13 +37,8 @@ NSString* const kShareSearchResultViewCell = @"kShareSearchResultViewCell";
     self.tableView.tableFooterView = [UIView new];
     self.tableView.rowHeight = 72;
     self.tableView.separatorColor = [UIColor colorWithRed:223/255.f green:226/255.f blue:227/255.f alpha:1];
-    
-    if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
-        [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 66, 0, 0)];
-    }
-    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) {
-        [self.tableView setLayoutMargins:UIEdgeInsetsZero];
-    }
+    [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 66, 0, 0)];
+    [self.tableView setLayoutMargins:UIEdgeInsetsZero];
 }
 
 #pragma mark - Public

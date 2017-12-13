@@ -1,20 +1,22 @@
 //
-//  DXShareFriendViewController.m
+//  DXShareViewController.m
 //  DemoXcode
 //
 //  Created by Nhữ Duy Đoàn on 12/13/17.
 //  Copyright © 2017 Nhữ Duy Đoàn. All rights reserved.
 //
 
-#import "DXShareFriendViewController.h"
+#import "DXShareViewController.h"
 #import "DXConversationModel.h"
 #import "DXConversationTableViewCell.h"
 #import "DXConversationManager.h"
 #import "DXShareSearchResultViewController.h"
+#import "DXSelectFriendsViewController.h"
+#import "DXImageManager.h"
 
 NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
-@interface DXShareFriendViewController () <UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating, DXShareSearchResultViewControllerDelegate>
+@interface DXShareViewController () <UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating, DXShareSearchResultViewControllerDelegate>
 
 @property (strong, nonatomic) UITableView *tableView;
 @property (strong, nonatomic) UIView *sectionHeaderView;
@@ -26,12 +28,13 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
 @end
 
-@implementation DXShareFriendViewController
+@implementation DXShareViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    [self setupNavigationItems];
     [self setupViews];
     [self getAllData];
 }
@@ -41,29 +44,50 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     // Dispose of any resources that can be recreated.
 }
 
-- (void)setupViews {
-    UITableView *tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
-    tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.view addSubview:tableView];
-    self.tableView = tableView;
-    self.tableView.backgroundColor = [UIColor clearColor];
-    self.view.backgroundColor = [UIColor whiteColor];
+#pragma mark - Setup Views
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleLightContent;
+}
+
+- (void)setupNavigationItems {
+    self.navigationController.navigationBar.translucent = NO;
+    UIColor *barTintColor = [UIColor colorWithRed:32/255.f green:148/255.f blue:241/255.f alpha:1];
+    UIImage *barBackgroundImage = [sImageManager imageWithColor:barTintColor];
+    [self.navigationController.navigationBar setBackgroundImage:barBackgroundImage forBarMetrics:UIBarMetricsDefault];
+    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    self.navigationController.view.backgroundColor = barTintColor;
+    self.navigationController.navigationBar.barTintColor = barTintColor;
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    [self.navigationController.navigationBar
+     setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:17 weight:UIFontWeightRegular],
+                                NSForegroundColorAttributeName:[UIColor whiteColor]}];
     
+    self.title = @"Chia sẻ";
+    UIBarButtonItem *closeBarItem = [[UIBarButtonItem alloc]
+                                     initWithTitle:@"Huỷ"
+                                     style:UIBarButtonItemStylePlain
+                                     target:self action:@selector(touchUpInsideCloseBarItem)];
+    self.navigationItem.leftBarButtonItem = closeBarItem;
+}
+
+- (void)setupViews {
     [self setupTableView];
     [self setupSearchController];
+    
+    self.tableView.backgroundColor = [UIColor clearColor];
+    self.view.backgroundColor = [UIColor whiteColor];
 }
 
 - (void)setupSearchController {
     self.searchResultViewController = [[DXShareSearchResultViewController alloc] init];
+    self.searchResultViewController.delegate = self;
     self.searchController = [[UISearchController alloc] initWithSearchResultsController:self.searchResultViewController];
-    
-    self.searchController.searchBar.frame = CGRectMake(0, 0, self.tableView.bounds.size.width, 44);
-    self.tableView.tableHeaderView = self.searchController.searchBar;
-    [self setupSearchBar:self.searchController.searchBar];
-    
     self.searchController.searchResultsUpdater = self;
     self.searchController.delegate = self;
     self.searchController.dimsBackgroundDuringPresentation = YES; // default is YES
+    self.tableView.tableHeaderView = self.searchController.searchBar;
+    [self setupSearchBar:self.searchController.searchBar];
     self.definesPresentationContext = YES;
 }
 
@@ -71,30 +95,32 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     
     searchBar.delegate = self;
     [searchBar sizeToFit];
+    searchBar.translucent = NO;
+    
     searchBar.placeholder = @"Tìm kiếm";
     UITextField *searchTextField = [searchBar valueForKey:@"searchField"];
     searchTextField.clearButtonMode = UITextFieldViewModeWhileEditing;
-    searchTextField.textAlignment = NSTextAlignmentCenter;
-//    UILabel *placeholderLabel = [searchTextField valueForKey:@"placeholderLabel"];
-    [searchBar setSearchBarStyle:UISearchBarStyleProminent];
+    [searchBar setValue:@"Huỷ" forKey:@"_cancelButtonText"];
 }
 
 - (void)setupTableView {
+    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
+    self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:self.tableView];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     self.tableView.tableFooterView = [UIView new];
     self.tableView.rowHeight = 72;
     self.tableView.separatorColor = [UIColor colorWithRed:223/255.f green:226/255.f blue:227/255.f alpha:1];
-    
-    if ([self.tableView respondsToSelector:@selector(setSeparatorInset:)]) {
-        [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 66, 0, 0)];
-    }
-    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) {
-        [self.tableView setLayoutMargins:UIEdgeInsetsZero];
-    }
+    [self.tableView setLayoutMargins:UIEdgeInsetsZero];
+    [self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 66, 0, 0)];
 }
 
 #pragma mark - Private
+
+- (void)touchUpInsideCloseBarItem {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 - (void)getAllData {
     weakify(self);
@@ -113,11 +139,17 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 }
 
 - (void)displaySelectMultiFriendsViewController {
-    
+    DXSelectFriendsViewController *controller = [DXSelectFriendsViewController new];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
+    [self presentViewController:navController animated:YES completion:nil];
 }
 
 - (void)didSelectConversation:(DXConversationModel *)model {
     
+    NSString *message = model.displayName;
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share to conversation" message:message preferredStyle:UIAlertControllerStyleAlert];
+    [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {
@@ -163,6 +195,14 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     return cell;
 }
 
+- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    for (UIView *subview in view.subviews) {
+        if (![subview isKindOfClass:[UILabel class]]) {
+            [subview removeFromSuperview];
+        }
+    }
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 0) {
         return 0;
@@ -181,10 +221,12 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     
     if (self.sectionHeaderView == nil) {
         UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 22)];
+        view.backgroundColor = [UIColor whiteColor];
         view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, view.bounds.size.width, 22)];
         label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         label.textColor = [UIColor colorWithRed:103/255.f green:116/255.f blue:129/255.f alpha:1];
+        label.font = [UIFont systemFontOfSize:15];
         label.text = @"Trò chuyện gần đây";
         [view addSubview:label];
         self.sectionHeaderView = view;
@@ -218,12 +260,14 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 #pragma mark - UISearchController Delegates
 
 - (void)willPresentSearchController:(UISearchController *)searchController {
+    self.navigationController.navigationBar.translucent = YES;
 }
 
 - (void)didPresentSearchController:(UISearchController *)searchController {
 }
 
 - (void)willDismissSearchController:(UISearchController *)searchController {
+    self.navigationController.navigationBar.translucent = NO;
 }
 
 - (void)didDismissSearchController:(UISearchController *)searchController {

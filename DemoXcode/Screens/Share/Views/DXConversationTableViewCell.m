@@ -47,7 +47,7 @@
 
 - (void)setupAvatarView {
     
-    self.avatarLayerView = [[UIView alloc] initWithFrame:CGRectMake(9, 12, 48, 48)];
+    self.avatarLayerView = [[UIView alloc] initWithFrame:CGRectMake(10, 13, 46, 46)];
     self.avatarLayerView.clipsToBounds = YES;
     self.avatarLayerView.layer.cornerRadius = self.avatarLayerView.bounds.size.width / 2;
     self.avatarImgView = [[UIImageView alloc] initWithFrame:self.avatarLayerView.bounds];

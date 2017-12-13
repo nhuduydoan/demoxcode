@@ -12,7 +12,7 @@
 #import "DXFilesViewController.h"
 #import "DXDownloadViewController.h"
 
-#import "DXShareFriendViewController.h"
+#import "DXShareViewController.h"
 
 @interface AppDelegate ()
 
@@ -33,7 +33,7 @@
 
 - (void)setupRootViewController {
     
-    DXShareFriendViewController *shareViewController = [DXShareFriendViewController new];
+    DXShareViewController *shareViewController = [DXShareViewController new];
     UINavigationController *navShareVC = [[UINavigationController alloc] initWithRootViewController:shareViewController];
     self.window.rootViewController = navShareVC;
     

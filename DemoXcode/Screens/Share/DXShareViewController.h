@@ -1,5 +1,5 @@
 //
-//  DXShareFriendViewController.h
+//  DXShareViewController.h
 //  DemoXcode
 //
 //  Created by Nhữ Duy Đoàn on 12/13/17.
@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface DXShareFriendViewController : UIViewController
+@interface DXShareViewController : UIViewController
 
 @end
