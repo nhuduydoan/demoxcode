@@ -19,7 +19,7 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 @interface DXShareViewController () <UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating, DXShareSearchResultViewControllerDelegate>
 
 @property (strong, nonatomic) UITableView *tableView;
-@property (strong, nonatomic) UIView *sectionHeaderView;
+@property (strong, nonatomic) UIView *sectionTitleView;
 
 @property (strong, nonatomic) UISearchController *searchController;
 @property (strong, nonatomic) DXShareSearchResultViewController *searchResultViewController;
@@ -93,7 +93,7 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 }
 
 - (void)setupTableView {
-    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
+    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
     self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:self.tableView];
     self.tableView.dataSource = self;
@@ -199,65 +199,56 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     [self didSelectConversation:model];
 }
 
-- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-//    if ([cell respondsToSelector:@selector(setSeparatorInset:)]) {
-//        [cell setSeparatorInset:UIEdgeInsetsMake(0, cell.bounds.size.width, 0, 0)];
-//    }
-//
-//    if ([cell respondsToSelector:@selector(setLayoutMargins:)]) {
-//        [cell setLayoutMargins:UIEdgeInsetsZero];
-//    }
+- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
     
-    if (indexPath.row == 0 && indexPath.section == 1) {
-        NSLog(@"Cell Sub views:");
-        for (UIView *subView in cell.subviews) {
-//            if ([subView isKindOfClass:NSClassFromString(@"_UITableViewCellSeparatorView")]) {
-//                NSLog(@"%@", NSStringFromClass([subView class]));
-//            }
-            NSLog(@"%@", NSStringFromClass([subView class]));
-            
-            NSLog(@"Subs views of subview:");
-            for (UIView *view in subView.subviews) {
-                NSLog(@"%@", NSStringFromClass([view class]));
-            }
-        }
+    for (UIView *subView in view.subviews) {
+        NSLog(@"%@", NSStringFromClass([subView class]));
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        return 0;
-    }
-    return 22;
+    return CGFLOAT_MIN;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 0.001;
+    if (section == 0) {
+        return 22;
+    }
+    return 1/[UIScreen mainScreen].scale;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        return nil;
-    }
-    
-    if (self.sectionHeaderView == nil) {
-        UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 22)];
-        view.backgroundColor = [UIColor whiteColor];
-        view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, view.bounds.size.width, 22)];
-        label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        label.textColor = [UIColor colorWithRed:103/255.f green:116/255.f blue:129/255.f alpha:1];
-        label.font = [UIFont systemFontOfSize:15];
-        label.text = @"Trò chuyện gần đây";
-        [view addSubview:label];
-        self.sectionHeaderView = view;
-    }
-    
-    return self.sectionHeaderView;
+    return nil;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    return nil;
+    if (section == 1) {
+        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 1/[UIScreen mainScreen].scale)];
+        lineView.backgroundColor = self.tableView.separatorColor;
+        return lineView;
+    }
+    
+    if (self.sectionTitleView == nil) {
+        UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 22)];
+        view.backgroundColor = [UIColor whiteColor];
+        view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(12, 2, view.bounds.size.width, 20)];
+        label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        label.textColor = [UIColor colorWithRed:103/255.f green:116/255.f blue:129/255.f alpha:1];
+        label.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
+        label.text = @"Trò chuyện gần đây";
+        [view addSubview:label];
+        
+        // Add top footer view line
+        UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, view.bounds.size.width, 1/[UIScreen mainScreen].scale)];
+        lineView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        lineView.backgroundColor = self.tableView.separatorColor;
+        [view addSubview:lineView];
+        
+        self.sectionTitleView = view;
+    }
+    
+    return self.sectionTitleView;
 }
 
 #pragma mark - UISearchController Delegates
