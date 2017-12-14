@@ -146,9 +146,11 @@
 - (void)displayThreeImages:(NSArray *)images {
     NSAssert(images.count == 3, @"Number of images must equal 3");
     
+    // Create a triangle is centered in the groupAvatarView which contains 3 avatar imageviews
     UIView *view = self.groupAvatarView;
     CGFloat imgWidth =  self.groupAvatarView.bounds.size.width / 2;
 
+    // Create top imageview and add into groupAvatarView
     CGFloat x = imgWidth/2;
     CGFloat y = (2 - sqrt(3.0))/4 * imgWidth;
     UIImageView *imageView1 = [[UIImageView alloc] initWithFrame:CGRectMake(x, y, imgWidth, imgWidth)];
@@ -158,6 +160,7 @@
     imageView1.image = image1;
     [view addSubview:imageView1];
     
+    // Create 2 bottom imageviews and add into groupAvatarView
     for (NSInteger i = 1; i < 3; i++) {
         CGFloat x2 = (i-1) * imgWidth;
         CGFloat y2 = (2 + sqrt(3.0))/4 * imgWidth;
