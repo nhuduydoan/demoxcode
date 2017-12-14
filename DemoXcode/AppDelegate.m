@@ -13,6 +13,7 @@
 #import "DXDownloadViewController.h"
 
 #import "DXShareViewController.h"
+#import "DXShareNavigationController.h"
 
 @interface AppDelegate ()
 
@@ -34,7 +35,7 @@
 - (void)setupRootViewController {
     
     DXShareViewController *shareViewController = [DXShareViewController new];
-    UINavigationController *navShareVC = [[UINavigationController alloc] initWithRootViewController:shareViewController];
+    DXShareNavigationController *navShareVC = [[DXShareNavigationController alloc] initWithRootViewController:shareViewController];
     self.window.rootViewController = navShareVC;
     
 //    UITabBarController *tabbarController = [[UITabBarController alloc] init];

@@ -96,17 +96,6 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
     });
 }
 
-- (UIImage *)titleImageFromString:(NSString *)string {
-    
-    NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:17]};
-    CGSize size = [string sizeWithAttributes:textAttributes];
-    UIGraphicsBeginImageContextWithOptions(size,NO,0.0);
-    [string drawAtPoint:CGPointMake(0, 0) withAttributes:textAttributes];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return image;
-}
-
 - (void)avatarForContactsArray:(NSArray<DXContactModel *> *)contacts withCompletionHandler:(void (^)(NSArray *images))completionHander {
     NSAssert(contacts.count, @"Array of contacts must be non null");
     
@@ -119,7 +108,7 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
             [images addObject:image];
         }
         if (contacts.count > 4) {
-            UIImage *image = [selfWeak avatarImageFromFullName:[NSString stringWithFormat:@"%zd", contacts.count] backgroundColor:kMakeColor(197, 165, 150, 1)];
+            UIImage *image = [selfWeak avatarImageFromString:[NSString stringWithFormat:@"%zd", contacts.count] backgroundColor:kMakeColor(194, 206, 225, 1) stringSize:DXAvatarImageSizeMedium];
             [images addObject:image];
         } else if (contacts.count == 4) {
             DXContactModel *contact = contacts[3];
@@ -132,42 +121,14 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
     });
 }
 
-#pragma mark - Private
-
-- (UIImage *)avatarForContact:(DXContactModel *)contact {
-    NSAssert(contact, @"Contact can not be null");
-    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
-    if (img == nil) {
-        if (contact.avatar == nil) {
-            img = [self avatarImageFromFullName:contact.fullName backgroundColor:nil];
-        } else if (contact.avatar.size.width > 200) {
-            img = [self avatarImageFromOriginalImage:contact.avatar];
-        }
-    }
-    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
-    return img;
-}
-
--(UIImage *)avatarImageFromFullName:(NSString *)fulleName backgroundColor:(UIColor *)color {
+- (UIImage *)titleImageFromString:(NSString *)string {
     
-    NSString *avatarString = [self avatarStringFromFullName:fulleName];
-    NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:44 weight:UIFontWeightRegular],
-                                     NSForegroundColorAttributeName:[UIColor whiteColor]};
-    CGSize size = [avatarString sizeWithAttributes:textAttributes];
-    int randColor = rand() % 8;
-    UIColor *backgroundColor = color ? color : self.avatarBGColors[randColor];
-    CGRect rect = CGRectMake(0, 0, 100, 100);
-    UIBezierPath* textPath = [UIBezierPath bezierPathWithRect:rect];
-    
-    UIGraphicsBeginImageContextWithOptions(rect.size,NO,0.0);
-    //Fill background color
-    [backgroundColor setFill];
-    [textPath fill];
-    //Draw Srting
-    [avatarString drawAtPoint:CGPointMake(rect.size.width/2 - size.width/2, rect.size.height/2 - size.height/2) withAttributes:textAttributes];
+    NSDictionary *textAttributes = @{NSFontAttributeName:[UIFont systemFontOfSize:17]};
+    CGSize size = [string sizeWithAttributes:textAttributes];
+    UIGraphicsBeginImageContextWithOptions(size,NO,0.0);
+    [string drawAtPoint:CGPointMake(0, 0) withAttributes:textAttributes];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    
     return image;
 }
 
@@ -196,6 +157,49 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
     UIImage *avartar = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return avartar;
+}
+
+#pragma mark - Private
+
+- (UIImage *)avatarForContact:(DXContactModel *)contact {
+    NSAssert(contact, @"Contact can not be null");
+    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
+    if (img == nil) {
+        if (contact.avatar == nil) {
+            NSString *avatarString = [self avatarStringFromFullName:contact.fullName];
+            img = [self avatarImageFromString:avatarString backgroundColor:nil stringSize:DXAvatarImageSizeSmall];
+        } else if (contact.avatar.size.width > 200) {
+            img = [self avatarImageFromOriginalImage:contact.avatar];
+        }
+    }
+    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+    return img;
+}
+
+-(UIImage *)avatarImageFromString:(NSString *)avatarString backgroundColor:(UIColor *)color stringSize:(DXAvatarImageSize)stringSize {
+    
+    UIFont *font = [UIFont systemFontOfSize:44 weight:UIFontWeightRegular];
+    if (stringSize == DXAvatarImageSizeMedium) {
+        font = [UIFont systemFontOfSize:66 weight:UIFontWeightRegular];
+    }
+    NSDictionary *textAttributes = @{NSFontAttributeName:font,
+                                     NSForegroundColorAttributeName:[UIColor whiteColor]};
+    CGSize size = [avatarString sizeWithAttributes:textAttributes];
+    int randColor = rand() % 8;
+    UIColor *backgroundColor = color ? color : self.avatarBGColors[randColor];
+    CGRect rect = CGRectMake(0, 0, 100, 100);
+    UIBezierPath* textPath = [UIBezierPath bezierPathWithRect:rect];
+    
+    UIGraphicsBeginImageContextWithOptions(rect.size,NO,0.0);
+    //Fill background color
+    [backgroundColor setFill];
+    [textPath fill];
+    //Draw Srting
+    [avatarString drawAtPoint:CGPointMake(rect.size.width/2 - size.width/2, rect.size.height/2 - size.height/2) withAttributes:textAttributes];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
 }
 
 - (NSString *)avatarStringFromFullName:(NSString *)fullName {

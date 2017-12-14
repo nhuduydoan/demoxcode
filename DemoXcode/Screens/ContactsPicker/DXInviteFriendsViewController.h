@@ -10,4 +10,6 @@
 
 @interface DXInviteFriendsViewController : UIViewController
 
+- (id)initWithContactsArray:(NSArray *)contactsArray;
+
 @end

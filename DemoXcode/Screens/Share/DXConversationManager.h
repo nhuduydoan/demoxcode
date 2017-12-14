@@ -29,4 +29,6 @@
 
 - (void)getAllConversationsWithCompletionHandler:(void (^)(NSArray<DXConversationModel *> *result, NSError *error))completionHandler;
 
+- (NSArray *)getContactsArray;
+
 @end

@@ -11,8 +11,8 @@
 #import "DXConversationTableViewCell.h"
 #import "DXConversationManager.h"
 #import "DXShareSearchResultViewController.h"
-#import "DXSelectFriendsViewController.h"
 #import "DXImageManager.h"
+#import "DXInviteFriendsViewController.h"
 
 NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
@@ -46,29 +46,18 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
 #pragma mark - Setup Views
 
-- (UIStatusBarStyle)preferredStatusBarStyle {
-    return UIStatusBarStyleLightContent;
-}
+//- (UIStatusBarStyle)preferredStatusBarStyle {
+//    return UIStatusBarStyleLightContent;
+//}
 
 - (void)setupNavigationItems {
-    self.navigationController.navigationBar.translucent = NO;
-    UIColor *barTintColor = [UIColor colorWithRed:32/255.f green:148/255.f blue:241/255.f alpha:1];
-    UIImage *barBackgroundImage = [sImageManager imageWithColor:barTintColor];
-    [self.navigationController.navigationBar setBackgroundImage:barBackgroundImage forBarMetrics:UIBarMetricsDefault];
-    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
-    self.navigationController.view.backgroundColor = barTintColor;
-    self.navigationController.navigationBar.barTintColor = barTintColor;
-    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
-    [self.navigationController.navigationBar
-     setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:17 weight:UIFontWeightRegular],
-                                NSForegroundColorAttributeName:[UIColor whiteColor]}];
-    
     self.title = @"Chia sẻ";
     UIBarButtonItem *closeBarItem = [[UIBarButtonItem alloc]
                                      initWithTitle:@"Huỷ"
                                      style:UIBarButtonItemStylePlain
                                      target:self action:@selector(touchUpInsideCloseBarItem)];
     self.navigationItem.leftBarButtonItem = closeBarItem;
+    self.navigationController.navigationBar.translucent = NO;
 }
 
 - (void)setupViews {
@@ -139,7 +128,8 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 }
 
 - (void)displaySelectMultiFriendsViewController {
-    DXSelectFriendsViewController *controller = [DXSelectFriendsViewController new];
+    NSArray *contacts = [[DXConversationManager shareInstance] getContactsArray];
+    DXInviteFriendsViewController *controller = [[DXInviteFriendsViewController alloc] initWithContactsArray:contacts];
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
     [self presentViewController:navController animated:YES completion:nil];
 }
@@ -195,10 +185,41 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     return cell;
 }
 
-- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    for (UIView *subview in view.subviews) {
-        if (![subview isKindOfClass:[UILabel class]]) {
-            [subview removeFromSuperview];
+#pragma mark - TableView Delegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    if (indexPath.section == 0) { // Touch in cell : "Chia sẻ cho nhiều bạn"
+        [self displaySelectMultiFriendsViewController];
+        return;
+    }
+    
+    id model = [self.data objectAtIndex:indexPath.row];
+    [self didSelectConversation:model];
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+//    if ([cell respondsToSelector:@selector(setSeparatorInset:)]) {
+//        [cell setSeparatorInset:UIEdgeInsetsMake(0, cell.bounds.size.width, 0, 0)];
+//    }
+//
+//    if ([cell respondsToSelector:@selector(setLayoutMargins:)]) {
+//        [cell setLayoutMargins:UIEdgeInsetsZero];
+//    }
+    
+    if (indexPath.row == 0 && indexPath.section == 1) {
+        NSLog(@"Cell Sub views:");
+        for (UIView *subView in cell.subviews) {
+//            if ([subView isKindOfClass:NSClassFromString(@"_UITableViewCellSeparatorView")]) {
+//                NSLog(@"%@", NSStringFromClass([subView class]));
+//            }
+            NSLog(@"%@", NSStringFromClass([subView class]));
+            
+            NSLog(@"Subs views of subview:");
+            for (UIView *view in subView.subviews) {
+                NSLog(@"%@", NSStringFromClass([view class]));
+            }
         }
     }
 }
@@ -239,38 +260,14 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     return nil;
 }
 
-#pragma mark - TableView Delegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
-    if (indexPath.section == 0) { // Touch in cell : "Chia sẻ cho nhiều bạn"
-        [self displaySelectMultiFriendsViewController];
-        return;
-    }
-    
-    id model = [self.data objectAtIndex:indexPath.row];
-    [self didSelectConversation:model];
-}
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    [self hideKeyBoardScreen];
-}
-
 #pragma mark - UISearchController Delegates
 
 - (void)willPresentSearchController:(UISearchController *)searchController {
     self.navigationController.navigationBar.translucent = YES;
 }
 
-- (void)didPresentSearchController:(UISearchController *)searchController {
-}
-
 - (void)willDismissSearchController:(UISearchController *)searchController {
     self.navigationController.navigationBar.translucent = NO;
-}
-
-- (void)didDismissSearchController:(UISearchController *)searchController {
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {

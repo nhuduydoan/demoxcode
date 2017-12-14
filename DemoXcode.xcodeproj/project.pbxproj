@@ -98,7 +98,6 @@
 		5CCC1C991FD68FC800CEAFDC /* DXDownloadComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CCC1C981FD68FC800CEAFDC /* DXDownloadComponent.m */; };
 		5CE0D1BC1FCBFF4700CCE134 /* DXApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */; };
 		5CED0BC61FE1411600357CF3 /* DXShareSearchResultViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CED0BC31FE1411600357CF3 /* DXShareSearchResultViewController.m */; };
-		5CED0BC91FE1416D00357CF3 /* DXSelectFriendsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CED0BC81FE1416D00357CF3 /* DXSelectFriendsViewController.m */; };
 		5CED0BCD1FE1468F00357CF3 /* DXShareNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CED0BCC1FE1468F00357CF3 /* DXShareNavigationController.m */; };
 		5CEDB6751FDE99F0002138D8 /* DXNSLockExample.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CEDB6711FDE99F0002138D8 /* DXNSLockExample.m */; };
 		5CEDB6761FDE99F0002138D8 /* DXTestModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CEDB6731FDE99F0002138D8 /* DXTestModel.m */; };
@@ -287,8 +286,6 @@
 		5CE0D1BB1FCBFF4700CCE134 /* DXApplication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXApplication.m; sourceTree = "<group>"; };
 		5CED0BC31FE1411600357CF3 /* DXShareSearchResultViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXShareSearchResultViewController.m; sourceTree = "<group>"; };
 		5CED0BC41FE1411600357CF3 /* DXShareSearchResultViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DXShareSearchResultViewController.h; sourceTree = "<group>"; };
-		5CED0BC71FE1416D00357CF3 /* DXSelectFriendsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXSelectFriendsViewController.h; sourceTree = "<group>"; };
-		5CED0BC81FE1416D00357CF3 /* DXSelectFriendsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXSelectFriendsViewController.m; sourceTree = "<group>"; };
 		5CED0BCB1FE1468F00357CF3 /* DXShareNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DXShareNavigationController.h; sourceTree = "<group>"; };
 		5CED0BCC1FE1468F00357CF3 /* DXShareNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DXShareNavigationController.m; sourceTree = "<group>"; };
 		5CEDB6711FDE99F0002138D8 /* DXNSLockExample.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DXNSLockExample.m; sourceTree = "<group>"; };
@@ -647,7 +644,6 @@
 				5CED0BC41FE1411600357CF3 /* DXShareSearchResultViewController.h */,
 				5CED0BC31FE1411600357CF3 /* DXShareSearchResultViewController.m */,
 				5CED0BCA1FE1467A00357CF3 /* NavigationController */,
-				5CED0BC51FE1411600357CF3 /* SelectFriends */,
 				5C67F41C1FE0D06D00B14F94 /* Models */,
 				5C67F41D1FE0D06D00B14F94 /* Views */,
 			);
@@ -749,15 +745,6 @@
 				5CC457291FD55626007BE6AC /* DXFilesTableViewCell.m */,
 			);
 			path = View;
-			sourceTree = "<group>";
-		};
-		5CED0BC51FE1411600357CF3 /* SelectFriends */ = {
-			isa = PBXGroup;
-			children = (
-				5CED0BC71FE1416D00357CF3 /* DXSelectFriendsViewController.h */,
-				5CED0BC81FE1416D00357CF3 /* DXSelectFriendsViewController.m */,
-			);
-			path = SelectFriends;
 			sourceTree = "<group>";
 		};
 		5CED0BCA1FE1467A00357CF3 /* NavigationController */ = {
@@ -1012,7 +999,6 @@
 				5C27EC431FC576010065E6B6 /* NIRadioGroup.m in Sources */,
 				5C957EA41FC2C5DB00B2E6F1 /* main.m in Sources */,
 				5CC457251FD551BA007BE6AC /* DXDownloadTableViewCell.m in Sources */,
-				5CED0BC91FE1416D00357CF3 /* DXSelectFriendsViewController.m in Sources */,
 				5C27EC181FC575F30065E6B6 /* NIInMemoryCache.m in Sources */,
 				5CC4572A1FD55626007BE6AC /* DXFilesTableViewCell.m in Sources */,
 				5C957E961FC2C5DB00B2E6F1 /* AppDelegate.m in Sources */,

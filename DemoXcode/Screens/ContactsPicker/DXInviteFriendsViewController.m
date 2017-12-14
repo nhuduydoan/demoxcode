@@ -28,22 +28,37 @@
 @property (strong, nonatomic) DXPickContactsViewController *pickContactsViewController;
 @property (strong, nonatomic) DXResultSearchViewController *searchResultViewController;
 
-@property (strong, nonatomic) NSMutableArray *originalData;
+@property (strong, nonatomic) NSArray *originalData;
 
 @end
 
 @implementation DXInviteFriendsViewController
 
+- (id)initWithContactsArray:(NSArray *)contactsArray {
+    self = [super init];
+    if (self) {
+        _originalData = contactsArray.copy;
+    }
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
-    self.originalData = [NSMutableArray new];
+    if (self.originalData == nil) {
+        self.originalData = [NSArray new];
+    }
+    
     [self setupTitleView];
     [self setupNavigationBarItems];
     [self setupHeaderView];
     [self setUpContentView];
-    [self reloadData];
+    if (self.originalData.count == 0) {
+        [self getAllContacts];
+    } else {
+        [self reloadData:self.originalData error:nil];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -52,6 +67,10 @@
 }
 
 #pragma mark - SetUp View
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleDefault;
+}
 
 - (void)setupNavigationBarItems {
     self.navigationController.navigationBar.translucent = NO;
@@ -234,23 +253,26 @@
 
 #pragma mark - Private
 
-- (void)reloadData {
-    [self.originalData removeAllObjects];
+- (void)getAllContacts {
     weakify(self);
     [sContactMngr getAllContactsWithCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error) {
-        if (contacts.count > 0) {
-            [selfWeak.originalData addObjectsFromArray:contacts];
-            [selfWeak displayNoResultlabel:NO];
-        } else {
-            [selfWeak displayNoResultlabel:YES];
-        }
-        [selfWeak.pickContactsViewController reloadWithData:selfWeak.originalData];
-        if(error) {
-            selfWeak.noResultLabel.text = error.localizedFailureReason;
-        } else {
-            selfWeak.noResultLabel.text = @"No result";
-        }
+        [selfWeak reloadData:contacts error:error];
     } callBackQueue:dispatch_get_main_queue()];
+}
+
+- (void)reloadData:(NSArray *)data error:(NSError *)error {
+    self.originalData = data.copy;
+    if (data.count > 0) {
+        [self displayNoResultlabel:NO];
+    } else {
+        [self displayNoResultlabel:YES];
+    }
+    [self.pickContactsViewController reloadWithData:self.originalData];
+    if(error) {
+        self.noResultLabel.text = error.localizedFailureReason;
+    } else {
+        self.noResultLabel.text = @"No result";
+    }
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {

@@ -17,6 +17,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    [self setupViews];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -24,16 +26,22 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    return UIStatusBarStyleLightContent;
+}
+
 - (void)setupViews {
-    
-    UIColor *barTintColor = [UIColor blueColor];
-    [self.navigationBar setBackgroundImage:[self imageWithColor:barTintColor] forBarMetrics:UIBarMetricsDefault];
+    UIColor *barBackgroundColor = [UIColor colorWithRed:32/255.f green:148/255.f blue:241/255.f alpha:1];
+    UIColor *tintColor = [UIColor whiteColor];
+    UIImage *barBackgroundImage = [self imageWithColor:barBackgroundColor];
+    [self.navigationBar setBackgroundImage:barBackgroundImage forBarMetrics:UIBarMetricsDefault];
     [self.navigationBar setShadowImage:[UIImage new]];
-    
-    self.view.backgroundColor = barTintColor;
-    self.navigationBar.barTintColor = barTintColor;
-    self.navigationBar.tintColor = [UIColor whiteColor];
-    [self.navigationBar setTitleTextAttributes: @{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+    self.view.backgroundColor = barBackgroundColor;
+    self.navigationBar.barTintColor = barBackgroundColor;
+    self.navigationBar.tintColor = tintColor;
+    NSDictionary *titleAttribute = @{NSFontAttributeName:[UIFont systemFontOfSize:17 weight:UIFontWeightRegular],
+                                      NSForegroundColorAttributeName:tintColor};
+    [self.navigationBar setTitleTextAttributes:titleAttribute];
 }
 
 - (UIImage *)imageWithColor:(UIColor *)color {

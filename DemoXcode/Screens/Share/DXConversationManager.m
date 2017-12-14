@@ -12,6 +12,7 @@
 @interface DXConversationManager ()
 
 @property (strong, nonatomic) NSArray *conversations;
+@property (strong, nonatomic) NSArray *contactsArray;
 
 @end
 
@@ -53,6 +54,7 @@
 }
 
 - (NSArray *)exampleConversations {
+    self.contactsArray = [self exampleFriendsArray];
     NSArray *friendsArr = [self exampleFriendsArray];
     NSArray *names = @[@"Group Ăn chơi", @"Ngắm gái Zalo", @"Probaby", @"Group tạo bug IOS", @"Zalo Product FC", @"Ăn nhậu cuối tuần", @"Cafe đèn sáng", @"Yêu đi đừng sợ", @"Code dạo mua sữa"];
     NSMutableArray *convaersationsArr = [NSMutableArray new];
@@ -74,7 +76,7 @@
 }
 
 -(NSArray *)randomMemeberFromFriends:(NSArray *)friends {
-    int count =  rand()%3;
+    int count =  rand()%4;
     count += 3;
     if (friends.count <= count) {
         return friends.copy;
@@ -95,6 +97,10 @@
     if (completionHandler) {
         completionHandler(self.conversations.copy, nil);
     }
+}
+
+- (NSArray *)getContactsArray {
+    return self.contactsArray.copy;
 }
 
 @end
