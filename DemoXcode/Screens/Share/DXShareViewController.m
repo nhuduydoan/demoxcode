@@ -12,7 +12,7 @@
 #import "DXConversationManager.h"
 #import "DXShareSearchResultViewController.h"
 #import "DXImageManager.h"
-#import "DXInviteFriendsViewController.h"
+//#import "DXInviteFriendsViewController.h"
 
 NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
@@ -45,10 +45,6 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 }
 
 #pragma mark - Setup Views
-
-//- (UIStatusBarStyle)preferredStatusBarStyle {
-//    return UIStatusBarStyleLightContent;
-//}
 
 - (void)setupNavigationItems {
     self.title = @"Chia sẻ";
@@ -111,8 +107,15 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+- (void)displaySelectMultiFriendsViewController {
+    //    NSArray *contacts = [[DXConversationManager shareInstance] getContactsArray];
+    //    DXInviteFriendsViewController *controller = [[DXInviteFriendsViewController alloc] initWithContactsArray:contacts];
+    //    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
+    //    [self presentViewController:navController animated:YES completion:nil];
+}
+
 - (void)getAllData {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [[DXConversationManager shareInstance] getAllConversationsWithCompletionHandler:^(NSArray *result, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             selfWeak.data = result.copy;
@@ -125,13 +128,6 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
     if ([self.searchController.searchBar isFirstResponder]) {
         [self.searchController.searchBar resignFirstResponder];
     }
-}
-
-- (void)displaySelectMultiFriendsViewController {
-    NSArray *contacts = [[DXConversationManager shareInstance] getContactsArray];
-    DXInviteFriendsViewController *controller = [[DXInviteFriendsViewController alloc] initWithContactsArray:contacts];
-    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
-    [self presentViewController:navController animated:YES completion:nil];
 }
 
 - (void)didSelectConversation:(DXConversationModel *)model {

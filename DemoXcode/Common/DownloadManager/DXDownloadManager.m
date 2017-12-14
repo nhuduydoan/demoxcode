@@ -99,7 +99,7 @@ didCompleteWithError:(NSError *)error;
         _managerSerialQueue = dispatch_queue_create("ManagerSerialQueue", DISPATCH_QUEUE_SERIAL);
         _downloadsArr = [NSMutableSet new];
         [self initSessionManager];
-        weakify(self);
+        __weak typeof(self) selfWeak = self;
         _networkManager = [Reachability reachabilityForInternetConnection];
         _networkManager.reachabilityBlock = ^(Reachability *reachability, SCNetworkConnectionFlags flags) {
             [selfWeak didChangeNetworkStatus];

@@ -8,7 +8,6 @@
 
 #import "DXImageManager.h"
 #import "DXContactModel.h"
-#import "NIinMemoryCache.h"
 #import "DXConversationModel.h"
 
 #define kMakeColor(r,g,b,a) [UIColor colorWithRed:r/255.f green:g/255.f blue:b/255.f alpha:a]
@@ -21,7 +20,7 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
 @interface DXImageManager ()
 
 @property (strong, nonatomic) NSArray *avatarBGColors;
-@property (strong, nonatomic) NIImageMemoryCache *imagesCache;
+//@property (strong, nonatomic) NIImageMemoryCache *imagesCache;
 @property (strong, nonatomic) dispatch_queue_t avatartQueue;
 
 @end
@@ -44,7 +43,7 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
     self = [super init];
     if (self) {
         [self setUpAvatarBGColors];
-        _imagesCache = [[NIImageMemoryCache alloc] initWithCapacity:1000];
+//        _imagesCache = [[NIImageMemoryCache alloc] initWithCapacity:1000];
         _avatartQueue = dispatch_queue_create("DXAvatarQueue", DISPATCH_QUEUE_SERIAL);
     }
     return self;
@@ -86,10 +85,10 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
 }
 
 - (void)avatarForContact:(DXContactModel *)contact withCompletionHandler:(void (^)(UIImage *image))completionHander {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     dispatch_async(self.avatartQueue, ^{
         UIImage *image = [selfWeak avatarForContact:contact];
-        [selfWeak.imagesCache storeObject:image withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+//        [selfWeak.imagesCache storeObject:image withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
         if (completionHander) {
             completionHander(image);
         }
@@ -99,7 +98,7 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
 - (void)avatarForContactsArray:(NSArray<DXContactModel *> *)contacts withCompletionHandler:(void (^)(NSArray *images))completionHander {
     NSAssert(contacts.count, @"Array of contacts must be non null");
     
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     dispatch_async(self.avatartQueue, ^{
         NSMutableArray *images = [NSMutableArray new];
         for (NSInteger i = 0; i < 3 && i < contacts.count; i ++) {
@@ -163,16 +162,21 @@ typedef NS_ENUM(NSUInteger, DXAvatarImageSize) {
 
 - (UIImage *)avatarForContact:(DXContactModel *)contact {
     NSAssert(contact, @"Contact can not be null");
-    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
+    
+    if (contact.avatar && contact.avatar.size.width <= 200) {
+        return contact.avatar;
+    }
+//    UIImage *img = [self.imagesCache objectWithName:contact.identifier];
+    UIImage *img;
     if (img == nil) {
         if (contact.avatar == nil) {
             NSString *avatarString = [self avatarStringFromFullName:contact.fullName];
             img = [self avatarImageFromString:avatarString backgroundColor:nil stringSize:DXAvatarImageSizeSmall];
-        } else if (contact.avatar.size.width > 200) {
+        } else {
             img = [self avatarImageFromOriginalImage:contact.avatar];
         }
     }
-    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
+//    [self.imagesCache storeObject:img withName:contact.identifier expiresAfter:[NSDate dateWithTimeIntervalSinceNow:300]];
     return img;
 }
 

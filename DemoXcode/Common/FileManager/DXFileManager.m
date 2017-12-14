@@ -68,7 +68,7 @@ NSString* const DXDownloadManagerDidDownLoadFinished = @"DXDownloadManagerDidDow
 }
 
 - (void)allFileItemModels:(void (^)(NSArray<DXFileModel *> *fileItems))completionHandler {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         NSArray *allPathComponents = [[NSFileManager defaultManager]
                                       contentsOfDirectoryAtURL:[NSURL fileURLWithPath:self.dataPath]

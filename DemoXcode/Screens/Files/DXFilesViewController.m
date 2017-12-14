@@ -59,7 +59,7 @@
 }
 
 - (void)reloadData {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [sFileManager allFileItemModels:^(NSArray<DXFileModel *> *fileItems) {
         [selfWeak setupTableViewModelWithData:fileItems];
     }];
@@ -83,7 +83,7 @@
         if ([obj isKindOfClass:[NSString class]]) {
             continue;
         }
-        weakify(self);
+        __weak typeof(self) selfWeak = self;
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             DXFileModel *model = [object userInfo];
             NSString *message = [[sFileManager rootFolderPath] stringByAppendingPathComponent:model.fileName];

@@ -101,7 +101,7 @@
         if ([obj isKindOfClass:[NSString class]]) {
             continue;
         }
-        weakify(self);
+        __weak typeof(self) selfWeak = self;
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             DXDownloadComponent *model = [object userInfo];
             NSString *message = [model.savedPath path];
@@ -165,7 +165,7 @@
 
 - (void)touchUpInSideAddBarButtonItem {
     
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Download" message:@"Chose a file to download" preferredStyle:UIAlertControllerStyleActionSheet];
     UIAlertAction *cuncon = [UIAlertAction actionWithTitle:@"Cun de thuong" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSString *imageLink = @"https://www.codeproject.com/KB/GDI-plus/ImageProcessing2/flip.jpg";

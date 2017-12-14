@@ -78,7 +78,7 @@
 #pragma mark - Public
 
 - (void)requestPermissionWithCompletionHandler:(void (^)(BOOL isAccess, NSError *error))completionHandler callBackQueue:(dispatch_queue_t)callBackQueue {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     if (![CNContactStore class]) {
         if (completionHandler) {
             [selfWeak runOnMainQueueOrQueue:callBackQueue block:^{
@@ -103,7 +103,7 @@
 
 - (void)getAllContactsWithCompletionHandler:(void (^)(NSArray<DXContactModel *> *contacts, NSError *error))completionHandler callBackQueue:(dispatch_queue_t)callBackQueue {
     NSAssert(completionHandler, @"completionHandler cannot be null");
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [self requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
         if (isAccess) {
             [selfWeak allDataWithCompletionHandler:completionHandler callBackQueue:callBackQueue];
@@ -214,7 +214,7 @@
     self.requestDate = [NSDate date];
     self.savedContactsArr = [NSMutableArray new];
     
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [self requestContactsWithCompletionHandler:^{
         selfWeak.isRequesting = NO;
         selfWeak.requestDate = [NSDate date];
@@ -225,7 +225,7 @@
 - (void)requestContactsWithCompletionHandler:(void (^)(void))competitionHandler {
     // This request will be run on global concurrent queue
     // Competition handler block will be executed on Manager Safe Queue
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         //keys with fetching properties
         NSArray *keys = @[CNContactFamilyNameKey,

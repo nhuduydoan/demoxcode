@@ -70,7 +70,7 @@
 
 - (void)setUpTableViewActionsWithData:(NSArray *)data {
     self.actions = [[NITableViewActions alloc] initWithTarget:self];
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     for (id obj in data) {
         if ([obj isKindOfClass:[NSString class]]) {
             continue;

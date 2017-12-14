@@ -56,7 +56,7 @@
 }
 
 - (void)updateActionsWithInsertedData:(NSArray *)insertedData {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     for (id obj in insertedData) {
         [self.actions attachToObject:obj tapBlock:^BOOL(id object, id target, NSIndexPath *indexPath) {
             id model = [object userInfo];

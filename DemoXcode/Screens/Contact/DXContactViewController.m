@@ -165,7 +165,7 @@
     [self.originalData removeAllObjects];
     self.displayData = [NSArray new];
     [self.tableView reloadData];
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [sContactMngr getAllContactsWithCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error) {
         if (contacts.count) {
             [selfWeak.originalData addObjectsFromArray:contacts];

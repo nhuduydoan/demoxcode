@@ -79,7 +79,7 @@
 
 - (void)checkAndDisplayContactsViewController {
     
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [sContactMngr requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
         if (isAccess) {
             DXContactViewController *controlelr = [DXContactViewController new];
@@ -94,7 +94,7 @@
 
 - (void)checkAndDisplayContactsPickerViewController {
     
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [sContactMngr requestPermissionWithCompletionHandler:^(BOOL isAccess, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (isAccess) {

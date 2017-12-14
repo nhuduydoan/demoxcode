@@ -76,7 +76,7 @@
     if (model.type == DXConversationTypeFriend) {
         self.avatarLayerView.alpha = 1;
         if (model.contact.avatar == nil || model.contact.avatar.size.width > 200) {
-            weakify(self);
+            __weak typeof(self) selfWeak = self;
             [sImageManager avatarForContact:model.contact withCompletionHandler:^(UIImage *image) {
                 [model.contact updateAvatar:image];
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -92,7 +92,7 @@
         if (model.avatars.count) {
             [self displayImagesArray:model.avatars];
         }
-        weakify(self);
+        __weak typeof(self) selfWeak = self;
         [sImageManager avatarForContactsArray:model.members withCompletionHandler:^(NSArray *images) {
             [model updateAvatars:images];
             dispatch_async(dispatch_get_main_queue(), ^{

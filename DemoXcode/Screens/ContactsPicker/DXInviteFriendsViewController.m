@@ -254,7 +254,7 @@
 #pragma mark - Private
 
 - (void)getAllContacts {
-    weakify(self);
+    __weak typeof(self) selfWeak = self;
     [sContactMngr getAllContactsWithCompletionHandler:^(NSArray<DXContactModel *> *contacts, NSError *error) {
         [selfWeak reloadData:contacts error:error];
     } callBackQueue:dispatch_get_main_queue()];

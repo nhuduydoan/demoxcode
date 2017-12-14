@@ -86,7 +86,7 @@
     self.titleLabel.text = contactModel.fullName;
     
     if (contactModel.avatar == nil || contactModel.avatar.size.width > 200) {
-        weakify(self);
+        __weak typeof(self) selfWeak = self;
         [sImageManager avatarForContact:contactModel withCompletionHandler:^(UIImage *image) {
             [contactModel updateAvatar:image];
             dispatch_async(dispatch_get_main_queue(), ^{
