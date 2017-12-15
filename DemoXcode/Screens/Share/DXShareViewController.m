@@ -12,7 +12,6 @@
 #import "DXConversationManager.h"
 #import "DXShareSearchResultViewController.h"
 #import "DXImageManager.h"
-#import "ZLShareExtensionManager.h"
 //#import "DXInviteFriendsViewController.h"
 
 NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
@@ -105,7 +104,7 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 #pragma mark - Private
 
 - (void)touchUpInsideCloseBarItem {
-    self.completeBlock();
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)displaySelectMultiFriendsViewController {
@@ -134,13 +133,9 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 - (void)didSelectConversation:(DXConversationModel *)model {
     
     NSString *message = model.displayName;
-    NSURL *sharedURL = [NSURL URLWithString:@"https://google.com.vn"];
-    [[ZLShareExtensionManager shareInstance] uploadAllShareDataToURL:sharedURL withConfiguration:nil completionHandler:^(NSError *error) {
-        
-    }];
-//    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share to conversation" message:message preferredStyle:UIAlertControllerStyleAlert];
-//    [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
-//    [self presentViewController:alertController animated:YES completion:nil];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share to conversation" message:message preferredStyle:UIAlertControllerStyleAlert];
+    [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)searchWithKeyWord:(NSString *)keyword {

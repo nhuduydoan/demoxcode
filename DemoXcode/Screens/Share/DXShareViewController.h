@@ -10,6 +10,4 @@
 
 @interface DXShareViewController : UIViewController
 
-@property (nonatomic, copy) void (^completeBlock)(void);
-
 @end
