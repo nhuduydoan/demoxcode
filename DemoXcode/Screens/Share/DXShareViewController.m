@@ -12,7 +12,7 @@
 #import "DXConversationManager.h"
 #import "DXShareSearchResultViewController.h"
 #import "DXImageManager.h"
-//#import "DXInviteFriendsViewController.h"
+#import "DXInviteFriendsViewController.h"
 
 NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 
@@ -108,10 +108,10 @@ NSString* const kShareFriendViewCell = @"kShareFriendViewCell";
 }
 
 - (void)displaySelectMultiFriendsViewController {
-    //    NSArray *contacts = [[DXConversationManager shareInstance] getContactsArray];
-    //    DXInviteFriendsViewController *controller = [[DXInviteFriendsViewController alloc] initWithContactsArray:contacts];
-    //    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
-    //    [self presentViewController:navController animated:YES completion:nil];
+        NSArray *contacts = [[DXConversationManager shareInstance] getContactsArray];
+        DXInviteFriendsViewController *controller = [[DXInviteFriendsViewController alloc] initWithContactsArray:contacts];
+        UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:controller];
+        [self presentViewController:navController animated:YES completion:nil];
 }
 
 - (void)getAllData {
