@@ -34,13 +34,13 @@
 
 - (void)setupRootViewController {
     
-    DXShareViewController *shareViewController = [DXShareViewController new];
-    DXShareNavigationController *navShareVC = [[DXShareNavigationController alloc] initWithRootViewController:shareViewController];
-    self.window.rootViewController = navShareVC;
+//    DXShareViewController *shareViewController = [DXShareViewController new];
+//    DXShareNavigationController *navShareVC = [[DXShareNavigationController alloc] initWithRootViewController:shareViewController];
+//    self.window.rootViewController = navShareVC;
     
-//    UITabBarController *tabbarController = [[UITabBarController alloc] init];
-//    [tabbarController setViewControllers:[self viewControllers]];
-//    self.window.rootViewController = tabbarController;
+    UITabBarController *tabbarController = [[UITabBarController alloc] init];
+    [tabbarController setViewControllers:[self viewControllers]];
+    self.window.rootViewController = tabbarController;
 }
 
 - (NSArray *)viewControllers {

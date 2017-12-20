@@ -54,55 +54,97 @@
 }
 
 - (void)testMultiDownloadOneURLWithMultiThread {
-//    XCTestExpectation *expect = [self expectationWithDescription:@"expect"];
+    XCTestExpectation *expect = [self expectationWithDescription:@"expect"];
     NSURL *imageURL = [NSURL URLWithString:_imageLink];
     NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
     dispatch_queue_t concurrentQueue = dispatch_queue_create("concurrentqueue", DISPATCH_QUEUE_CONCURRENT);
     NSMutableArray *arr = [NSMutableArray new];
     
-    NSLock *lock = [NSLock new];
-    [lock lock];
-    [lock tryLock];
     dispatch_group_t group = dispatch_group_create();
-    
-    dispatch_block_t block = dispatch_block_create(DISPATCH_BLOCK_BARRIER, ^{
-        NSLog(@"Before Sleep 1");
-//        sleep(2);
-        for (int i = 0; i < 100; i ++) {
-            //            dispatch_group_enter(group);
-            
+    NSLog(@"Before Sleep 1");
+    for (int i = 0; i < 100; i ++) {
+        dispatch_group_enter(group);
+        dispatch_async(concurrentQueue, ^{
             DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
             if (component) {
-                NSLog(@"add:%d", i);
-//                [arr addObject:component];
+                [arr addObject:component];
             }
-            NSLog(@"%d", i);
-            //            dispatch_group_leave(group);
+            dispatch_group_leave(group);
+        });
+    }
+    
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        XCTAssertEqual(arr.count, 1, @"Components needs is once");
+        [expect fulfill];
+    });
+    [self waitForExpectationsWithTimeout:10 handler:nil];
+}
+
+- (void)testMultiDownloadOneURLWithMultiThreadWithGroup {
+    NSURL *imageURL = [NSURL URLWithString:_imageLink];
+    NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
+    dispatch_queue_t concurrentQueue = dispatch_queue_create("concurrentqueue", DISPATCH_QUEUE_CONCURRENT);
+    NSMutableArray *arr = [NSMutableArray new];
+    dispatch_group_t group = dispatch_group_create();
+    NSLog(@"Before Sleep 1");
+    for (int i = 0; i < 100; i ++) {
+        dispatch_async(concurrentQueue, ^{
+            dispatch_group_enter(group);
+            DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
+            if (component) {
+                [arr addObject:component];
+            }
+            dispatch_group_leave(group);
+        });
+    }
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    NSLog(@"Xong viec roi ne");
+    XCTAssertEqual(arr.count, 1, @"Components needs is once");
+}
+
+- (void)testMultiDownloadOneURLWithMultiThreadWithDispatchWait {
+    NSURL *imageURL = [NSURL URLWithString:_imageLink];
+    NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
+    NSMutableArray *arr = [NSMutableArray new];
+    dispatch_block_t block = dispatch_block_create(DISPATCH_BLOCK_BARRIER, ^{
+        for (int i = 0; i < 100; i ++) {
+            DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
+            if (component) {
+                [arr addObject:component];
+            }
         }
-        NSLog(@"After Sleep 2");
         NSLog(@"Loi gi a=======");
+        
     });
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block);
-//    dispatch_barrier_async(concurrentQueue, ^{
-//
-//        NSLog(@"===");
-//        XCTAssertEqual(arr.count, 1, @"Components needs is once");
-//        [expect fulfill];
-//    });
-    //    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-    //        XCTAssertEqual(arr.count, 1, @"Components needs is once");
-//            [expect fulfill];
-    //    });
-    NSLog(@"Xong viec roi ne");
     dispatch_block_wait(block, DISPATCH_TIME_FOREVER);
-    NSLog(@"A hu hu");
-//    dispatch_group_wait(group, time);
-//    NSLog(@"A hi hi");
-//    [expect fulfill];
-    XCTAssertEqual(arr.count, 0, @"Components needs is once");
+    NSLog(@"Xong viec roi ne");
+    XCTAssertEqual(arr.count, 1, @"Components needs is once");
+}
+
+- (void)testMultiDownloadOneURLWithMultiThreadWithBarrier {
+    XCTestExpectation *expect = [self expectationWithDescription:@"expect"];
+    NSURL *imageURL = [NSURL URLWithString:_imageLink];
+    NSURL *fileURL = [NSURL fileURLWithPath:[[sFileManager rootFolderPath] stringByAppendingPathComponent:@"Cun con.PNG"]];
+    dispatch_queue_t concurrentQueue = dispatch_queue_create("concurrentqueue", DISPATCH_QUEUE_CONCURRENT);
+    NSMutableArray *arr = [NSMutableArray new];
     
-//    [self waitForExpectationsWithTimeout:10 handler:nil];
+    for (int i = 0; i < 100; i ++) {
+        dispatch_async(concurrentQueue, ^{
+            DXDownloadComponent *component = [sDownloadManager downloadURL:imageURL toFilePath:fileURL completionHandler:nil error:nil];
+            if (component) {
+                [arr addObject:component];
+            }
+        });
+    }
+    
+    dispatch_barrier_async(concurrentQueue, ^{
+        NSLog(@"===");
+        XCTAssertEqual(arr.count, 1, @"Components needs is once");
+        [expect fulfill];
+    });
+    [self waitForExpectationsWithTimeout:10 handler:nil];
 }
 
 @end
